@@ -9,19 +9,49 @@
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
         <form class="space-y-6" @submit.prevent="handleSubmit">
-          <div v-if="isRegisterMode">
-            <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-            <div class="mt-1">
-              <input
-                id="name"
-                v-model="form.name"
-                name="name"
-                type="text"
-                required
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-              />
+          <template v-if="isRegisterMode">
+            <div>
+              <label for="username" class="block text-sm font-medium text-gray-700">Nombre de usuario</label>
+              <div class="mt-1">
+                <input
+                  id="username"
+                  v-model="form.username"
+                  name="username"
+                  type="text"
+                  required
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
             </div>
-          </div>
+
+            <div>
+              <label for="firstName" class="block text-sm font-medium text-gray-700">Nombre</label>
+              <div class="mt-1">
+                <input
+                  id="firstName"
+                  v-model="form.firstName"
+                  name="firstName"
+                  type="text"
+                  required
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="lastName" class="block text-sm font-medium text-gray-700">Apellido</label>
+              <div class="mt-1">
+                <input
+                  id="lastName"
+                  v-model="form.lastName"
+                  name="lastName"
+                  type="text"
+                  required
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+            </div>
+          </template>
 
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
@@ -104,15 +134,23 @@ const authStore = useAuthStore()
 
 const isRegisterMode = ref(false)
 const form = reactive({
+  username: '',
   email: '',
   password: '',
-  name: ''
+  firstName: '',
+  lastName: ''
 })
 
 const handleSubmit = async () => {
   try {
     if (isRegisterMode.value) {
-      await authStore.register(form.email, form.password, form.name)
+      await authStore.register(
+        form.username,
+        form.email,
+        form.password,
+        form.firstName,
+        form.lastName
+      )
     } else {
       await authStore.login(form.email, form.password)
     }

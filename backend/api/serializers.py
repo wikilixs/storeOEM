@@ -1,6 +1,37 @@
 # Serializadores para la aplicación API
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from .models import Cliente, Producto, Clave, Venta, DetalleVenta, Pago
+
+User = get_user_model()
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password', 'confirm_password', 'first_name', 'last_name')
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'email': {'required': True}
+        }
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"password": "Las contraseñas no coinciden"})
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('confirm_password')
+        user = User.objects.create_user(**validated_data)
+        Cliente.objects.create(
+            user=user,
+            nombre=f"{validated_data['first_name']} {validated_data['last_name']}",
+            email=validated_data['email']
+        )
+        return user
 
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:

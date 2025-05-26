@@ -1,14 +1,33 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from django.db import transaction
+from django.contrib.auth import get_user_model
 from .models import Cliente, Producto, Clave, Venta, DetalleVenta, Pago
 from .serializers import (
     ClienteSerializer, ProductoSerializer, ClaveSerializer,
-    VentaSerializer, DetalleVentaSerializer, PagoSerializer
+    VentaSerializer, DetalleVentaSerializer, PagoSerializer,
+    UserRegistrationSerializer
 )
 import requests
 from django.conf import settings
+
+User = get_user_model()
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = UserRegistrationSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            "user": UserRegistrationSerializer(user, context=self.get_serializer_context()).data,
+            "message": "Usuario registrado exitosamente",
+        }, status=status.HTTP_201_CREATED)
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
@@ -159,3 +178,4 @@ class PagoViewSet(viewsets.ModelViewSet):
                 'error': f'Error al procesar el pago en API {api_numero}',
                 'detail': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+            

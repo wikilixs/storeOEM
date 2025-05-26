@@ -1,112 +1,72 @@
 <template>
-  <div class="w-full px-4 py-8">
-    <div v-if="loading" class="text-center py-8">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-900 mx-auto"></div>
-      <p class="mt-4 text-gray-600">Cargando productos...</p>
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-purple-900">
+      {{ route.params.category.charAt(0).toUpperCase() + route.params.category.slice(1) }}
+    </h1>
+
+    <div v-if="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-900"></div>
     </div>
 
-    <div v-else-if="error" class="bg-red-50 text-red-600 p-4 rounded-lg">
-      {{ error }}
+    <div v-else-if="error" class="text-center py-12">
+      <p class="text-red-600">{{ error }}</p>
     </div>
 
-    <template v-else>
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold">{{ categoryData[category]?.title }}</h1>
-        <p class="mt-2 text-gray-600">{{ categoryData[category]?.description }}</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="product in products"
-          :key="product.id"
-          class="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all hover:shadow-lg"
-        >
-          <router-link :to="`/productos/${category}/${product.id}`">
-            <div class="aspect-w-16 aspect-h-9">
-              <img
-                :src="product.image || '/placeholder.svg'"
-                :alt="product.name"
-                class="object-cover w-full h-full"
-              />
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-purple-900">{{ product.name }}</h3>
-              <p class="mt-2 text-sm text-gray-600">{{ product.description }}</p>
-              <div class="mt-4 flex items-center justify-between">
-                <span class="text-lg font-bold text-purple-600">{{ product.price }} Bs.</span>
-                <button 
-                  @click.prevent="addToCart(product)"
-                  class="rounded-md bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700"
-                >
-                  Añadir al carrito
-                </button>
-              </div>
-            </div>
-          </router-link>
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div 
+        v-for="producto in productos" 
+        :key="producto.id"
+        class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+      >
+        <div class="p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ producto.nombre }}</h3>
+          <p class="text-sm text-gray-600 mb-4">{{ producto.descripcion }}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-purple-900 font-bold">{{ producto.precio }} Bs.</span>
+            <button
+              @click="cartStore.addItem(producto)"
+              class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+            >
+              Agregar al carrito
+            </button>
+          </div>
         </div>
       </div>
-    </template>
+    </div>
+
+    <div v-if="!loading && !error && productos.length === 0" class="text-center py-12">
+      <p class="text-gray-600">No hay productos disponibles en esta categoría.</p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useProductsStore } from '@/stores/products'
 import { useCartStore } from '@/stores/cart'
 
 const route = useRoute()
-const productsStore = useProductsStore()
 const cartStore = useCartStore()
-
-const category = computed(() => route.params.category)
-const products = ref([])
+const productos = ref([])
 const loading = ref(true)
 const error = ref(null)
 
-const categoryData = {
-  windows: {
-    title: "Licencias Windows OEM",
-    description: "Licencias originales para Windows 10 y Windows 11 a los mejores precios en Bolivia",
-  },
-  office: {
-    title: "Licencias Microsoft Office",
-    description: "Licencias originales para Microsoft Office a los mejores precios en Bolivia",
-  },
-  tarjetas: {
-    title: "Tarjetas de Regalo",
-    description: "Tarjetas de regalo para tus plataformas favoritas: Steam, Netflix, Spotify y más",
-  },
-}
-
-const loadProducts = async () => {
-  loading.value = true
-  error.value = null
-  
+const cargarProductos = async () => {
   try {
-    const validCategories = ["windows", "office", "tarjetas"]
-    if (!validCategories.includes(category.value)) {
-      throw new Error("Categoría no válida")
-    }
-    
-    await productsStore.fetchProductsByCategory(category.value)
-    products.value = productsStore.getProductsByCategory(category.value)
-  } catch (e) {
-    error.value = e.message
+    loading.value = true
+    const response = await fetch(`/api/productos/?tipo=${route.params.category}`)
+    if (!response.ok) throw new Error('Error al cargar productos')
+    const data = await response.json()
+    productos.value = data
+  } catch (err) {
+    error.value = 'Error al cargar los productos. Por favor, intente más tarde.'
+    console.error('Error:', err)
   } finally {
     loading.value = false
   }
 }
 
-const addToCart = (product) => {
-  cartStore.addToCart(product)
-}
-
 onMounted(() => {
-  loadProducts()
-})
-
-watch(() => route.params.category, () => {
-  loadProducts()
+  cargarProductos()
 })
 </script>

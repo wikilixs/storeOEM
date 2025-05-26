@@ -36,98 +36,92 @@ const socialLinks = [
 </script>
 
 <template>
-  <footer class="bg-white border-t mt-auto">
-    <div class="w-full px-4 py-12">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div class="col-span-1">
-          <h3 class="text-lg font-semibold text-purple-900 mb-4">OEM Store</h3>
-          <p class="text-gray-600 mb-4">
-            Tu tienda de confianza para licencias originales de software y tarjetas de regalo.
-          </p>
-          <div class="flex space-x-4">
-            <a 
-              v-for="social in socialLinks" 
-              :key="social.name"
-              :href="social.url"
-              :title="social.name"
-              class="text-gray-400 hover:text-purple-600 transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="social.icon" />
-              </svg>
-            </a>
-          </div>
+  <footer class="bg-white border-t border-gray-200">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+            Productos
+          </h3>
+          <ul class="mt-4 space-y-4">
+            <li>
+              <router-link to="/productos/windows" class="text-base text-gray-500 hover:text-purple-600">
+                Windows
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/productos/office" class="text-base text-gray-500 hover:text-purple-600">
+                Office
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/productos/tarjetas" class="text-base text-gray-500 hover:text-purple-600">
+                Tarjetas de Regalo
+              </router-link>
+            </li>
+          </ul>
         </div>
-
-        <div class="col-span-1">
-          <h3 class="text-lg font-semibold text-purple-900 mb-4">Contacto</h3>
-          <div class="space-y-3">
-            <a href="mailto:soporte@oemstore.com" class="flex items-center text-gray-600 hover:text-purple-900 transition-colors">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              soporte@oemstore.com
-            </a>
-            <p class="flex items-center text-gray-600">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Lun-Vie: 9:00-18:00
-            </p>
-          </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+            Soporte
+          </h3>
+          <ul class="mt-4 space-y-4">
+            <li>
+              <router-link to="/soporte" class="text-base text-gray-500 hover:text-purple-600">
+                Centro de Ayuda
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/preguntas" class="text-base text-gray-500 hover:text-purple-600">
+                Preguntas Frecuentes
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/contacto" class="text-base text-gray-500 hover:text-purple-600">
+                Contacto
+              </router-link>
+            </li>
+          </ul>
         </div>
-
-        <div class="col-span-1">
-          <h3 class="text-lg font-semibold text-purple-900 mb-4">Enlaces</h3>
-          <div class="space-y-2">
-            <router-link 
-              v-for="(link, index) in ['Tutorial de Activación', 'Términos y Condiciones', 'Política de Privacidad', 'Preguntas Frecuentes']"
-              :key="index"
-              :to="'/' + link.toLowerCase().replace(/ /g, '-')"
-              class="block text-gray-600 hover:text-purple-900 transition-colors"
-            >
-              {{ link }}
-            </router-link>
-          </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+            Legal
+          </h3>
+          <ul class="mt-4 space-y-4">
+            <li>
+              <router-link to="/terminos" class="text-base text-gray-500 hover:text-purple-600">
+                Términos y Condiciones
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/privacidad" class="text-base text-gray-500 hover:text-purple-600">
+                Política de Privacidad
+              </router-link>
+            </li>
+          </ul>
         </div>
-
-        <div class="col-span-1">
-          <h3 class="text-lg font-semibold text-purple-900 mb-4">Métodos de Pago</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div 
-              v-for="method in paymentMethods" 
-              :key="method.name"
-              class="flex flex-col items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-            >
-              <svg class="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="method.icon" />
-              </svg>
-              <span class="mt-2 text-sm text-gray-600 text-center">{{ method.name }}</span>
-            </div>
-          </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+            Empresa
+          </h3>
+          <ul class="mt-4 space-y-4">
+            <li>
+              <router-link to="/nosotros" class="text-base text-gray-500 hover:text-purple-600">
+                Sobre Nosotros
+              </router-link>
+            </li>
+            <li>
+              <a href="mailto:info@oemstore.com" class="text-base text-gray-500 hover:text-purple-600">
+                info@oemstore.com
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
-
-      <div class="mt-12 pt-8 border-t">
-        <div class="flex flex-col md:flex-row justify-between items-center text-gray-600 text-sm">
-          <p>&copy; {{ currentYear }} OEM Store. Todos los derechos reservados.</p>
-          <div class="mt-4 md:mt-0 flex items-center space-x-6">
-            <div class="flex items-center text-gray-600">
-              <svg class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span class="text-sm">SSL Secure</span>
-            </div>
-            <div class="flex items-center text-gray-600">
-              <svg class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span class="text-sm">Verified Business</span>
-            </div>
-          </div>
-        </div>
+      <div class="mt-12 border-t border-gray-200 pt-8">
+        <p class="text-base text-gray-400 text-center">
+          &copy; {{ new Date().getFullYear() }} OEM Store. Todos los derechos reservados.
+        </p>
       </div>
     </div>
   </footer>

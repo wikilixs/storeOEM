@@ -1,57 +1,51 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import MainLayout from '@/layouts/MainLayout.vue'
 
 const routes = [
   {
+    path: '/',
+    component: MainLayout,
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: () => import('@/views/Home.vue')
+      },
+      {
+        path: 'productos',
+        name: 'products',
+        component: () => import('@/views/Products.vue')
+      },
+      {
+        path: 'carrito',
+        name: 'cart',
+        component: () => import('@/views/Cart.vue'),
+        meta: { requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/auth',
+    component: () => import('@/layouts/AuthLayout.vue'),
+    children: [
+      {
+        path: 'login',
+        name: 'login',
+        component: () => import('@/views/auth/Login.vue'),
+        meta: { requiresGuest: true }
+      },
+      {
+        path: 'register',
+        name: 'register',
+        component: () => import('@/views/auth/Register.vue'),
+        meta: { requiresGuest: true }
+      }
+    ]
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
-  },
-  {
-    path: '/',
-    component: () => import('@/views/Home.vue')
-  },
-  {
-    path: '/login',
-    component: () => import('@/views/auth/Login.vue')
-  },
-  {
-    path: '/productos/:category',
-    component: () => import('@/views/productos/[category]/ProductosCategoria.vue')
-  },
-  {
-    path: '/productos/:category/:id',
-    component: () => import('@/views/productos/[category]/[id]/ProductoDetalle.vue')
-  },
-  {
-    path: '/carrito',
-    component: () => import('@/views/Cart.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/perfil',
-    component: () => import('@/views/Profile.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/soporte',
-    component: () => import('@/views/Soporte.vue')
-  },
-  {
-    path: '/terminos',
-    component: () => import('@/views/Terminos.vue')
-  },
-  {
-    path: '/privacidad',
-    component: () => import('@/views/Politica.vue')
-  },
-  {
-    path: '/preguntas',
-    component: () => import('@/views/Preguntas.vue')
-  },
-  {
-    path: '/pedidos',
-    component: () => import('@/views/Orders.vue'),
-    meta: { requiresAuth: true }
   }
 ]
 
@@ -60,17 +54,21 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // Check authentication status on initial load
-  if (!authStore.isAuthenticated) {
-    await authStore.checkAuth()
+  if (!authStore.isAuthenticated && authStore.token) {
+    try {
+      await authStore.checkAuth()
+    } catch (error) {
+      console.error('Error checking auth:', error)
+    }
   }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
+    next({ name: 'login', query: { redirect: to.fullPath } })
+  } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    next({ name: 'home' })
   } else {
     next()
   }

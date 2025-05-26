@@ -1,7 +1,11 @@
 # Definición de modelos para la aplicación API
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class Cliente(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     nombre = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)

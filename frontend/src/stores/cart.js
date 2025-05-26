@@ -7,62 +7,45 @@ export const useCartStore = defineStore('cart', {
   }),
 
   getters: {
-    totalItems: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
-    
-    totalAmount: (state) => state.items.reduce(
-      (sum, item) => sum + (item.price * item.quantity),
-      0
-    ),
-    
-    formattedTotal: (state) => {
-      const total = state.items.reduce(
-        (sum, item) => sum + (item.price * item.quantity),
-        0
-      )
-      return new Intl.NumberFormat('es-ES', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(total)
-    }
+    itemCount: (state) => state.items.length,
+    total: (state) => state.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    isEmpty: (state) => state.items.length === 0
   },
 
   actions: {
-    addItem(product) {
-      const existingItem = this.items.find(item => item.id === product.id)
-      
+    addItem(item) {
+      const existingItem = this.items.find(i => i.id === item.id)
       if (existingItem) {
         existingItem.quantity++
       } else {
-        this.items.push({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1
-        })
+        this.items.push({ ...item, quantity: 1 })
       }
-      
-      this.saveCart()
     },
 
-    removeItem(productId) {
-      const index = this.items.findIndex(item => item.id === productId)
+    removeItem(itemId) {
+      const index = this.items.findIndex(item => item.id === itemId)
       if (index > -1) {
         this.items.splice(index, 1)
-        this.saveCart()
       }
     },
 
-    updateQuantity(productId, quantity) {
-      const item = this.items.find(item => item.id === productId)
+    updateQuantity(itemId, quantity) {
+      const item = this.items.find(i => i.id === itemId)
       if (item) {
-        item.quantity = Math.max(1, quantity)
-        this.saveCart()
+        item.quantity = quantity
       }
     },
 
     clearCart() {
       this.items = []
-      this.saveCart()
+    },
+
+    toggleCart() {
+      this.isOpen = !this.isOpen
+    },
+
+    closeCart() {
+      this.isOpen = false
     },
 
     saveCart() {
@@ -74,10 +57,6 @@ export const useCartStore = defineStore('cart', {
       if (savedCart) {
         this.items = JSON.parse(savedCart)
       }
-    },
-
-    toggleCart() {
-      this.isOpen = !this.isOpen
     }
   }
 })
