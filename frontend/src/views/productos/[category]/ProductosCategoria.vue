@@ -13,23 +13,23 @@
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <div 
+        <div
         v-for="producto in productos" 
         :key="producto.id"
         class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
       >
-        <div class="p-4">
+            <div class="p-4">
           <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ producto.nombre }}</h3>
           <p class="text-sm text-gray-600 mb-4">{{ producto.descripcion }}</p>
           <div class="flex items-center justify-between">
             <span class="text-purple-900 font-bold">{{ producto.precio }} Bs.</span>
-            <button
+                <button 
               @click="cartStore.addItem(producto)"
               class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
-            >
+                >
               Agregar al carrito
-            </button>
-          </div>
+                </button>
+              </div>
         </div>
       </div>
     </div>

@@ -99,10 +99,10 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Error during logout:', error)
       } finally {
-        this.user = null
-        this.token = null
-        this.isAuthenticated = false
-        localStorage.removeItem('token')
+      this.user = null
+      this.token = null
+      this.isAuthenticated = false
+      localStorage.removeItem('token')
         
         const router = useRouter()
         router.push('/login')

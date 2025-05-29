@@ -14,7 +14,7 @@ const form = reactive({
 const handleSubmit = async () => {
   try {
     await authStore.login(form.email, form.password)
-    router.push('/')
+    router.push('/')    
   } catch (error) {
     console.error('Error de autenticación:', error)
   }
@@ -25,9 +25,9 @@ const handleSubmit = async () => {
   <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">
-        Iniciar sesión
-      </h2>
-    </div>
+          Iniciar sesión
+        </h2>
+      </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
@@ -63,9 +63,9 @@ const handleSubmit = async () => {
 
           <div v-if="authStore.error" class="text-red-600 text-sm">
             {{ authStore.error }}
-          </div>
+        </div>
 
-          <div>
+        <div>
             <button
               type="submit"
               :disabled="authStore.loading"
@@ -73,9 +73,9 @@ const handleSubmit = async () => {
             >
               <span v-if="authStore.loading">Iniciando sesión...</span>
               <span v-else>Iniciar sesión</span>
-            </button>
-          </div>
-        </form>
+          </button>
+        </div>
+      </form>
 
         <div class="mt-6">
           <div class="relative">

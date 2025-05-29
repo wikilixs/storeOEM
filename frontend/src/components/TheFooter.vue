@@ -96,7 +96,7 @@ const socialLinks = [
             <li>
               <router-link to="/privacidad" class="text-base text-gray-500 hover:text-purple-600">
                 Política de Privacidad
-              </router-link>
+            </router-link>
             </li>
           </ul>
         </div>

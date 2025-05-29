@@ -34,12 +34,14 @@ const tutorials = [
   {
     title: 'Guía de Windows',
     description: 'Aprende a activar tu licencia de Windows paso a paso',
-    icon: 'M9 5l7 7-7 7'
+    icon: 'M9 5l7 7-7 7',
+    link: '/tutoriales/windows'
   },
   {
     title: 'Guía de Office',
     description: 'Instala y activa tu suite de Office en minutos',
-    icon: 'M19 14l-7 7m0 0l-7-7m7 7V3'
+    icon: 'M19 14l-7 7m0 0l-7-7m7 7V3',
+    link: '/tutoriales/office'
   }
 ]
 
@@ -100,10 +102,10 @@ const features = ref([
               <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
                 <span class="block">Software Original</span>
                 <span class="block text-purple-600">Precios Increíbles</span>
-              </h1>
+            </h1>
               <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
                 Las mejores licencias de Windows, Office y tarjetas de regalo para tus necesidades digitales.
-              </p>
+            </p>
               <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                 <div class="rounded-md shadow">
                   <router-link
@@ -131,79 +133,80 @@ const features = ref([
       </div>
     </div>
 
-    <!-- Categories Section -->
-    <section class="py-16">
-      <div class="w-full px-4 md:px-6">
-        <h2 class="text-3xl font-bold text-center mb-8">Nuestros Productos</h2>
-        <ProductCategories />
-      </div>
-    </section>
-
-    <!-- Featured Products Section -->
-    <section class="py-16 bg-gray-50">
-      <div class="w-full px-4 md:px-6">
-        <h2 class="text-3xl font-bold text-purple-900 text-center mb-8">Productos Destacados</h2>
-        <FeaturedProducts />
-      </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="py-16 bg-gradient-to-br from-purple-50 to-white">
-      <div class="w-full px-4">
-        <div class="w-full">
-          <h2 class="text-3xl font-bold text-purple-900 text-center mb-12">
-            ¿Por qué elegirnos?
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div
-              v-for="(feature, index) in featuresList"
-              :key="index"
-              class="flex items-center p-3 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-purple-50 rounded-lg mr-3">
-                <svg class="w-2 h-2 text-purple-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
-                </svg>
-              </div>
-              <span class="text-sm text-gray-700 line-clamp-2">{{ feature }}</span>
-              </div>
-            </div>
+      <!-- Categories Section -->
+      <section class="py-16">
+        <div class="w-full px-4 md:px-6">
+          <h2 class="text-3xl font-bold text-center mb-8">Nuestros Productos</h2>
+          <ProductCategories />
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tutorial Section -->
-    <section id="tutorial" class="py-12">
-      <div class="w-full px-4">
-        <h2 class="text-2xl font-bold text-purple-900 text-center mb-8">
-          Tutoriales de Activación
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-          <div
-            v-for="(tutorial, index) in tutorials"
-            :key="index"
-            class="group flex items-start p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer"
-          >
-            <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-purple-50 rounded-lg mr-4">
-              <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="tutorial.icon"/>
-              </svg>
-            </div>
-            <div class="flex-grow min-w-0">
-              <h3 class="text-base font-semibold text-purple-900 mb-1">{{ tutorial.title }}</h3>
-              <p class="text-sm text-gray-600 mb-2 line-clamp-2">{{ tutorial.description }}</p>
-              <div class="flex items-center text-purple-600 group-hover:text-purple-700">
-                <span class="text-sm font-medium">Ver tutorial</span>
-                <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
+      <!-- Featured Products Section -->
+      <section class="py-16 bg-gray-50">
+        <div class="w-full px-4 md:px-6">
+          <h2 class="text-3xl font-bold text-purple-900 text-center mb-8">Productos Destacados</h2>
+          <FeaturedProducts />
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="py-16 bg-gradient-to-br from-purple-50 to-white">
+        <div class="w-full px-4">
+          <div class="w-full">
+            <h2 class="text-3xl font-bold text-purple-900 text-center mb-12">
+              ¿Por qué elegirnos?
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div
+              v-for="(feature, index) in featuresList"
+                :key="index"
+                class="flex items-center p-3 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-purple-50 rounded-lg mr-3">
+                  <svg class="w-2 h-2 text-purple-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+                  </svg>
+                </div>
+                <span class="text-sm text-gray-700 line-clamp-2">{{ feature }}</span>
+                </div>
               </div>
-            </div>
           </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+
+      <!-- Tutorial Section -->
+      <section id="tutorial" class="py-12">
+        <div class="w-full px-4">
+          <h2 class="text-2xl font-bold text-purple-900 text-center mb-8">
+            Tutoriales de Activación
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+            <router-link
+              v-for="(tutorial, index) in tutorials"
+              :key="index"
+              :to="tutorial.link"
+              class="group flex items-start p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer"
+            >
+              <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-purple-50 rounded-lg mr-4">
+                <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="tutorial.icon"/>
+                </svg>
+              </div>
+              <div class="flex-grow min-w-0">
+                <h3 class="text-base font-semibold text-purple-900 mb-1">{{ tutorial.title }}</h3>
+                <p class="text-sm text-gray-600 mb-2 line-clamp-2">{{ tutorial.description }}</p>
+                <div class="flex items-center text-purple-600 group-hover:text-purple-700">
+                  <span class="text-sm font-medium">Ver tutorial</span>
+                  <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </div>
+            </router-link>
+          </div>
+        </div>
+      </section>
+    </main>
 </template>
 
 <script>

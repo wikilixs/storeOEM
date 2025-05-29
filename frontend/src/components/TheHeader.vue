@@ -128,7 +128,7 @@ onMounted(() => {
                     role="menuitem"
                   >
                     Cerrar Sesión
-                  </button>
+            </button>
                 </div>
               </transition>
             </div>
@@ -145,7 +145,7 @@ onMounted(() => {
               class="inline-block bg-purple-600 py-2 px-4 border border-transparent rounded-md text-base font-medium text-white hover:bg-purple-700"
             >
               Crear Cuenta
-            </router-link>
+          </router-link>
           </template>
         </div>
       </div>

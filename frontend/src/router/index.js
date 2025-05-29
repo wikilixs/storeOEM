@@ -22,6 +22,16 @@ const routes = [
         name: 'cart',
         component: () => import('@/views/Cart.vue'),
         meta: { requiresAuth: true }
+      },
+      {
+        path: 'tutoriales/windows',
+        name: 'tutorial-windows',
+        component: () => import('@/views/tutoriales/windows.vue')
+      },
+      {
+        path: 'tutoriales/office',
+        name: 'tutorial-office',
+        component: () => import('@/views/tutoriales/office.vue')
       }
     ]
   },
