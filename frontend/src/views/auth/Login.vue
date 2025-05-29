@@ -7,13 +7,13 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const form = reactive({
-  email: '',
+  username: '',
   password: ''
 })
 
 const handleSubmit = async () => {
   try {
-    await authStore.login(form.email, form.password)
+    await authStore.login(form.username, form.password)
     router.push('/')    
   } catch (error) {
     console.error('Error de autenticación:', error)
@@ -33,14 +33,14 @@ const handleSubmit = async () => {
       <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
         <form class="space-y-6" @submit.prevent="handleSubmit">
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <label for="username" class="block text-sm font-medium text-gray-700">Nombre de usuario</label>
             <div class="mt-1">
               <input
-                id="email"
-                v-model="form.email"
-                name="email"
-                type="email"
-                autocomplete="email"
+                id="username"
+                v-model="form.username"
+                name="username"
+                type="text"
+                autocomplete="username"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
               />

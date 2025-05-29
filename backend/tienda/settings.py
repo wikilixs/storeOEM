@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'tienda.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tiendaoem',
+        'NAME': 'tienda_oem',
         'USER': 'wikilixs',
         'PASSWORD': 'wikilixss',
         'HOST': 'localhost',

@@ -24,34 +24,6 @@
           </div>
 
           <div>
-            <label for="firstName" class="block text-sm font-medium text-gray-700">Nombre</label>
-            <div class="mt-1">
-              <input
-                id="firstName"
-                v-model="form.firstName"
-                name="firstName"
-                type="text"
-                required
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label for="lastName" class="block text-sm font-medium text-gray-700">Apellido</label>
-            <div class="mt-1">
-              <input
-                id="lastName"
-                v-model="form.lastName"
-                name="lastName"
-                type="text"
-                required
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-          </div>
-
-          <div>
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <div class="mt-1">
               <input
@@ -59,7 +31,34 @@
                 v-model="form.email"
                 name="email"
                 type="email"
-                autocomplete="email"
+                required
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+            <div class="mt-1">
+              <input
+                id="nombre"
+                v-model="form.nombre"
+                name="nombre"
+                type="text"
+                required
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="apellido" class="block text-sm font-medium text-gray-700">Apellido</label>
+            <div class="mt-1">
+              <input
+                id="apellido"
+                v-model="form.apellido"
+                name="apellido"
+                type="text"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
               />
@@ -80,20 +79,6 @@
             </div>
           </div>
 
-          <div>
-            <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
-            <div class="mt-1">
-              <input
-                id="confirmPassword"
-                v-model="form.confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-          </div>
-
           <div v-if="authStore.error" class="text-red-600 text-sm">
             {{ authStore.error }}
           </div>
@@ -101,11 +86,11 @@
           <div>
             <button
               type="submit"
-              :disabled="authStore.loading || !isFormValid"
+              :disabled="authStore.loading"
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
             >
               <span v-if="authStore.loading">Registrando...</span>
-              <span v-else>Crear cuenta</span>
+              <span v-else>Registrarse</span>
             </button>
           </div>
         </form>
@@ -137,9 +122,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -148,34 +133,18 @@ const form = reactive({
   username: '',
   email: '',
   password: '',
-  confirmPassword: '',
-  firstName: '',
-  lastName: ''
-})
-
-const isFormValid = computed(() => {
-  return form.username &&
-         form.email &&
-         form.password &&
-         form.confirmPassword &&
-         form.firstName &&
-         form.lastName &&
-         form.password === form.confirmPassword
+  nombre: '',
+  apellido: ''
 })
 
 const handleSubmit = async () => {
-  if (!isFormValid.value) {
-    authStore.error = 'Por favor, complete todos los campos correctamente'
-    return
-  }
-
   try {
     await authStore.register(
       form.username,
       form.email,
       form.password,
-      form.firstName,
-      form.lastName
+      form.nombre,
+      form.apellido
     )
     router.push('/')
   } catch (error) {

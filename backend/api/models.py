@@ -1,66 +1,72 @@
 # Definición de modelos para la aplicación API
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 User = get_user_model()
 
-class Cliente(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+class Cliente(AbstractUser):
     nombre = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
+    apellido = models.CharField(max_length=100)
+    fecha_registro = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'clientes'
+        swappable = 'AUTH_USER_MODEL'
 
     def __str__(self):
-        return self.nombre
+        return f"{self.username} - {self.nombre} {self.apellido}"
 
 class Producto(models.Model):
-    TIPOS_PRODUCTO = [
-        ('Windows 11', 'Windows 11'),
-        ('Office', 'Office'),
-        ('Tarjeta de regalo', 'Tarjeta de regalo'),
-    ]
-    
     nombre = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=50, choices=TIPOS_PRODUCTO)
+    tipo = models.CharField(max_length=50)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    descripcion = models.TextField(blank=True)
+    descripcion = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'productos'
+        managed = False  # Indica que Django no debe gestionar esta tabla
 
     def __str__(self):
         return f"{self.nombre} - {self.tipo}"
 
 class Clave(models.Model):
-    ESTADOS = [
-        ('disponible', 'Disponible'),
-        ('vendida', 'Vendida'),
-    ]
-    
     clave = models.CharField(max_length=255)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='disponible')
-    fecha_agregado = models.DateTimeField(auto_now_add=True)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, db_column='producto_id')
+    estado = models.CharField(max_length=20, default='disponible')
+    fecha_agregado = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'claves'
+        managed = False  # Indica que Django no debe gestionar esta tabla
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.estado}"
+        return f"Clave de {self.producto.nombre} - {self.estado}"
 
 class Venta(models.Model):
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    fecha = models.DateTimeField(auto_now_add=True)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, db_column='cliente_id')
+    fecha = models.DateTimeField(default=timezone.now)
     total = models.DecimalField(max_digits=10, decimal_places=2)
 
+    class Meta:
+        db_table = 'ventas'
+        managed = False  # Indica que Django no debe gestionar esta tabla
+
     def __str__(self):
-        return f"Venta {self.id} - {self.cliente.nombre}"
+        return f"Venta {self.id} - {self.cliente.username}"
 
 class DetalleVenta(models.Model):
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
-    clave = models.ForeignKey(Clave, on_delete=models.CASCADE)
+    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, db_column='venta_id')
+    clave = models.ForeignKey(Clave, on_delete=models.CASCADE, db_column='clave_id')
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        db_table = 'detalle_venta'
+        managed = False  # Indica que Django no debe gestionar esta tabla
 
     def __str__(self):
         return f"Detalle de venta {self.venta.id} - {self.clave.producto.nombre}"
-
-    class Meta:
-        verbose_name = "Detalle de venta"
-        verbose_name_plural = "Detalles de venta"
 
 class Pago(models.Model):
     ESTADO_CHOICES = [

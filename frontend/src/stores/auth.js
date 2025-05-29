@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   actions: {
-    async register(username, email, password, firstName, lastName) {
+    async register(username, email, password, nombre, apellido) {
       this.loading = true
       this.error = null
       
@@ -26,14 +26,23 @@ export const useAuthStore = defineStore('auth', {
             email,
             password,
             confirm_password: password,
-            first_name: firstName,
-            last_name: lastName
+            nombre,
+            apellido
           })
+        }).catch(error => {
+          throw new Error('No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo.')
         })
 
         if (!response.ok) {
-          const error = await response.json()
-          throw new Error(error.detail || 'Error al registrar usuario')
+          const errorData = await response.text()
+          let errorMessage
+          try {
+            const jsonError = JSON.parse(errorData)
+            errorMessage = jsonError.detail || 'Error al registrar usuario'
+          } catch (e) {
+            errorMessage = 'Error al procesar la respuesta del servidor'
+          }
+          throw new Error(errorMessage)
         }
 
         const data = await response.json()
@@ -52,29 +61,40 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async login(email, password) {
+    async login(username, password) {
       this.loading = true
       this.error = null
       
       try {
-        const response = await fetch('/api/auth/login/', {
+        const response = await fetch('/api/token/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ username, password })
         })
 
         if (!response.ok) {
           const error = await response.json()
-          throw new Error(error.detail || 'Error al iniciar sesión')
+          throw new Error(error.detail || 'Credenciales inválidas')
         }
 
         const data = await response.json()
-        this.token = data.token
-        this.user = data.user
+        this.token = data.access
         this.isAuthenticated = true
-        localStorage.setItem('token', data.token)
+        localStorage.setItem('token', data.access)
+        
+        // Obtener información del usuario
+        const userResponse = await fetch('/api/user/', {
+          headers: {
+            'Authorization': `Bearer ${data.access}`
+          }
+        })
+        
+        if (!userResponse.ok) throw new Error('Error al obtener información del usuario')
+        
+        const userData = await userResponse.json()
+        this.user = userData
         
         const router = useRouter()
         router.push('/')
@@ -110,7 +130,10 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async checkAuth() {
-      if (!this.token) return false
+      if (!this.token) {
+        this.isAuthenticated = false
+        return false
+      }
 
       try {
         const response = await fetch('/api/auth/user/', {
@@ -119,14 +142,20 @@ export const useAuthStore = defineStore('auth', {
           }
         })
 
-        if (!response.ok) throw new Error('Token inválido')
+        if (!response.ok) {
+          throw new Error('Token inválido')
+        }
 
         const user = await response.json()
         this.user = user
         this.isAuthenticated = true
         return true
       } catch (error) {
-        this.logout()
+        console.error('Error en checkAuth:', error)
+        this.user = null
+        this.token = null
+        this.isAuthenticated = false
+        localStorage.removeItem('token')
         return false
       }
     },
