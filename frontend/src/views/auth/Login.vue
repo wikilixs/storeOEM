@@ -91,7 +91,7 @@ const handleSubmit = async () => {
 
           <div class="mt-6">
             <router-link
-              to="/register"
+              to="/auth/register"
               class="w-full inline-flex justify-center text-sm font-medium text-purple-600 hover:text-purple-500"
             >
               Crear una cuenta

@@ -78,14 +78,25 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  const publicPages = ['/', '/auth/login', '/auth/register', '/productos', '/tutoriales/windows', '/tutoriales/office']
-  const authRequired = !publicPages.includes(to.path)
+  
+  // Rutas que requieren autenticación
+  const authRequiredPaths = [
+    '/mis-compras',
+    '/checkout',
+    '/perfil'
+  ]
+  
+  // Verificar si la ruta actual requiere autenticación
+  const authRequired = authRequiredPaths.some(path => to.path.startsWith(path))
 
   if (authRequired && !authStore.isAuthenticated) {
-    return next('/auth/login')
+    return next({
+      path: '/auth/login',
+      query: { redirect: to.fullPath }
+    })
   }
 
-    next()
+  next()
 })
 
 export default router

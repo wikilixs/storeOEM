@@ -8,13 +8,15 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: false,
     token: localStorage.getItem('token') || null,
     loading: false,
-    error: null
+    error: null,
+    successMessage: null
   }),
 
   actions: {
     async register(username, email, contraseña, nombre, apellido) {
       this.loading = true
       this.error = null
+      this.successMessage = null
       
       try {
         const { data, errors } = await authService.register({
@@ -36,6 +38,7 @@ export const useAuthStore = defineStore('auth', {
           this.token = data.access;
           this.user = data.user;
           this.isAuthenticated = true;
+          this.successMessage = '¡Cuenta creada exitosamente! Redirigiendo...';
         }
         
         return data;
@@ -114,6 +117,10 @@ export const useAuthStore = defineStore('auth', {
 
     clearError() {
       this.error = null
+    },
+
+    clearSuccessMessage() {
+      this.successMessage = null
     },
 
     async updateProfile({ nombre, contraseña }) {

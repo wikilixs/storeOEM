@@ -97,6 +97,10 @@
             {{ authStore.error }}
           </div>
 
+          <div v-if="authStore.successMessage" class="text-green-600 text-sm mb-4">
+            {{ authStore.successMessage }}
+          </div>
+
           <div>
             <button
               type="submit"
@@ -166,7 +170,10 @@ const handleSubmit = async () => {
       form.nombre,
       form.apellido
     )
-    router.push('/')
+    setTimeout(() => {
+      router.push('/')
+      authStore.clearSuccessMessage()
+    }, 2000)
   } catch (error) {
     console.error('Error de registro:', error)
   }
