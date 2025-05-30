@@ -42,16 +42,16 @@ export const useCartStore = defineStore('cart', {
       try {
         const existingItem = this.items.find(item => item.id === product.id)
         
-        if (existingItem) {
-          existingItem.quantity++
-        } else {
+      if (existingItem) {
+        existingItem.quantity++
+      } else {
           this.items.push({
             id: product.id,
             name: product.name,
             price: product.price,
             quantity: 1
           })
-        }
+      }
         
         this.saveCart()
       } catch (error) {
@@ -64,7 +64,7 @@ export const useCartStore = defineStore('cart', {
       try {
         const index = this.items.findIndex(item => item.id === productId)
         if (index !== -1) {
-          this.items.splice(index, 1)
+        this.items.splice(index, 1)
           this.saveCart()
         }
       } catch (error) {
@@ -76,9 +76,9 @@ export const useCartStore = defineStore('cart', {
     updateQuantity(productId, quantity) {
       try {
         const item = this.items.find(item => item.id === productId)
-        if (item) {
+      if (item) {
           if (quantity > 0) {
-            item.quantity = quantity
+        item.quantity = quantity
           } else {
             this.removeFromCart(productId)
           }
@@ -92,7 +92,7 @@ export const useCartStore = defineStore('cart', {
 
     clearCart() {
       try {
-        this.items = []
+      this.items = []
         localStorage.removeItem('cart')
       } catch (error) {
         console.error('Error clearing cart:', error)

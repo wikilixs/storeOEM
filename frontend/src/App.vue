@@ -1,6 +1,6 @@
 <template>
   <router-view></router-view>
-</template>
+</template> 
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'

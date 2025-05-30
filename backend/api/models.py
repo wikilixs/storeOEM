@@ -1,37 +1,78 @@
 # Definición de modelos para la aplicación API
 from django.db import models
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
 
-User = get_user_model()
+class ClienteManager(BaseUserManager):
+    def create_user(self, username, email, password=None, **extra_fields):
+        if not username:
+            raise ValueError('El nombre de usuario es obligatorio')
+        if not email:
+            raise ValueError('El correo electrónico es obligatorio')
+        
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-class Cliente(AbstractUser):
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(username, email, password, **extra_fields)
+
+class Cliente(AbstractBaseUser, PermissionsMixin):
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=50, unique=True)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
+    email = models.EmailField(max_length=100, unique=True)
     fecha_registro = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = ClienteManager()
+
+    USERNAME_FIELD = 'username'
+    EMAIL_FIELD = 'email'
+    REQUIRED_FIELDS = ['email', 'nombre', 'apellido']
 
     class Meta:
         db_table = 'clientes'
-        swappable = 'AUTH_USER_MODEL'
+        managed = False
 
     def __str__(self):
         return f"{self.username} - {self.nombre} {self.apellido}"
 
+    def get_full_name(self):
+        return f"{self.nombre} {self.apellido}"
+
+    def get_short_name(self):
+        return self.nombre
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
 class Producto(models.Model):
+    id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    descripcion = models.TextField(null=True, blank=True)
+    descripcion = models.TextField(null=True)
 
     class Meta:
         db_table = 'productos'
-        managed = False  # Indica que Django no debe gestionar esta tabla
+        managed = False
 
     def __str__(self):
         return f"{self.nombre} - {self.tipo}"
 
 class Clave(models.Model):
+    id = models.AutoField(primary_key=True)
     clave = models.CharField(max_length=255)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, db_column='producto_id')
     estado = models.CharField(max_length=20, default='disponible')
@@ -39,31 +80,33 @@ class Clave(models.Model):
 
     class Meta:
         db_table = 'claves'
-        managed = False  # Indica que Django no debe gestionar esta tabla
+        managed = False
 
     def __str__(self):
         return f"Clave de {self.producto.nombre} - {self.estado}"
 
 class Venta(models.Model):
+    id = models.AutoField(primary_key=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, db_column='cliente_id')
     fecha = models.DateTimeField(default=timezone.now)
     total = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         db_table = 'ventas'
-        managed = False  # Indica que Django no debe gestionar esta tabla
+        managed = False
 
     def __str__(self):
         return f"Venta {self.id} - {self.cliente.username}"
 
 class DetalleVenta(models.Model):
+    id = models.AutoField(primary_key=True)
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE, db_column='venta_id')
     clave = models.ForeignKey(Clave, on_delete=models.CASCADE, db_column='clave_id')
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         db_table = 'detalle_venta'
-        managed = False  # Indica que Django no debe gestionar esta tabla
+        managed = False
 
     def __str__(self):
         return f"Detalle de venta {self.venta.id} - {self.clave.producto.nombre}"

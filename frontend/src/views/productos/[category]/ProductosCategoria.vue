@@ -4,7 +4,7 @@
       <div v-if="categoryInfo" class="text-center">
         <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
           {{ categoryInfo.name }}
-        </h1>
+    </h1>
         <p class="mt-4 text-xl text-gray-500">
           {{ categoryInfo.description }}
         </p>
@@ -12,11 +12,11 @@
 
       <div v-if="productsStore.loading" class="mt-12 flex justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+    </div>
 
       <div v-else-if="productsStore.error" class="mt-12 text-center text-red-600">
         {{ productsStore.error }}
-      </div>
+    </div>
 
       <div
         v-else
@@ -32,7 +32,7 @@
               :src="product.image"
               :alt="product.name"
               class="w-full h-full object-center object-cover"
-            >
+      >
           </div>
           <div class="p-6">
             <h3 class="text-lg font-medium text-gray-900">
@@ -43,16 +43,16 @@
             <p class="mt-1 text-sm text-gray-500">{{ product.description }}</p>
             <div class="mt-4 flex items-center justify-between">
               <p class="text-xl font-bold text-purple-600">{{ product.price }} Bs.</p>
-              <button
+                <button 
                 @click="addToCart(product)"
                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-              >
+                >
                 Añadir
-              </button>
-            </div>
-          </div>
+                </button>
+              </div>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>

@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   actions: {
-    async register(username, email, password, nombre, apellido) {
+    async register(username, email, contraseña, nombre, apellido) {
       this.loading = true
       this.error = null
       
@@ -24,35 +24,34 @@ export const useAuthStore = defineStore('auth', {
           body: JSON.stringify({
             username,
             email,
-            password,
-            confirm_password: password,
+            contraseña,
+            confirm_password: contraseña,
             nombre,
             apellido
           })
-        }).catch(error => {
-          throw new Error('No se pudo conectar con el servidor. Por favor, verifica que el backend esté corriendo.')
         })
 
+        const data = await response.json()
+
         if (!response.ok) {
-          const errorData = await response.text()
-          let errorMessage
-          try {
-            const jsonError = JSON.parse(errorData)
-            errorMessage = jsonError.detail || 'Error al registrar usuario'
-          } catch (e) {
-            errorMessage = 'Error al procesar la respuesta del servidor'
+          let errorMessage = 'Error al registrar usuario'
+          if (data) {
+            // Si hay errores específicos del campo, mostrarlos
+            if (typeof data === 'object') {
+              const firstError = Object.entries(data)[0]
+              if (firstError) {
+                const [field, messages] = firstError
+                errorMessage = Array.isArray(messages) ? messages[0] : messages
+              }
+            }
           }
           throw new Error(errorMessage)
         }
 
-        const data = await response.json()
-        this.token = data.token
         this.user = data.user
         this.isAuthenticated = true
-        localStorage.setItem('token', data.token)
         
-        const router = useRouter()
-        router.push('/')
+        return data
       } catch (error) {
         this.error = error.message
         throw error

@@ -3,11 +3,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div v-if="productsStore.loading" class="flex justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+    </div>
 
       <div v-else-if="productsStore.error" class="text-center text-red-600">
         {{ productsStore.error }}
-      </div>
+    </div>
 
       <div v-else-if="product" class="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
         <!-- Imagen -->
@@ -27,7 +27,7 @@
             <h2 class="sr-only">Información del producto</h2>
             <p class="text-3xl text-gray-900">{{ product.price }} Bs.</p>
           </div>
-
+          
           <div class="mt-6">
             <h3 class="sr-only">Descripción</h3>
             <div class="text-base text-gray-700 space-y-6">
@@ -36,13 +36,13 @@
           </div>
 
           <div class="mt-10 flex sm:flex-col1">
-            <button
+                    <button
               type="button"
               @click="addToCart"
               class="max-w-xs flex-1 bg-purple-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-purple-500 sm:w-full"
-            >
+                    >
               Añadir al carrito
-            </button>
+                    </button>
           </div>
 
           <section class="mt-12">
@@ -54,7 +54,7 @@
                 <li>Soporte técnico incluido</li>
                 <li>Actualizaciones de por vida</li>
                 <li>Garantía de funcionamiento o devolución</li>
-              </ul>
+                    </ul>
             </div>
           </section>
 
@@ -67,8 +67,8 @@
               </p>
             </div>
           </section>
-        </div>
-      </div>
+            </div>
+          </div>
 
       <div v-else class="text-center py-12">
         <h2 class="text-2xl font-medium text-gray-900">Producto no encontrado</h2>

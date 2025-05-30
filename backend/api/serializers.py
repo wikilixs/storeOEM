@@ -1,17 +1,18 @@
 # Serializadores para la aplicación API
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from .models import Cliente, Producto, Clave, Venta, DetalleVenta, Pago
 
 User = get_user_model()
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    contraseña = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = Cliente
-        fields = ('username', 'email', 'password', 'confirm_password', 'nombre', 'apellido')
+        fields = ('username', 'email', 'contraseña', 'confirm_password', 'nombre', 'apellido')
         extra_kwargs = {
             'nombre': {'required': True},
             'apellido': {'required': True},
@@ -19,13 +20,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if attrs['password'] != attrs['confirm_password']:
-            raise serializers.ValidationError({"password": "Las contraseñas no coinciden"})
+        if attrs['contraseña'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"contraseña": "Las contraseñas no coinciden"})
         return attrs
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
-        password = validated_data.pop('password')
+        password = validated_data.pop('contraseña')
         cliente = Cliente(**validated_data)
         cliente.set_password(password)
         cliente.save()
@@ -34,27 +35,30 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cliente
-        fields = ['id', 'username', 'nombre', 'apellido', 'email', 'fecha_registro']
-        read_only_fields = ['fecha_registro']
+        fields = ['id', 'username', 'nombre', 'apellido', 'email']
+        extra_kwargs = {
+            'contraseña': {'write_only': True}
+        }
 
 class ClienteRegistroSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = Cliente
-        fields = ['username', 'nombre', 'apellido', 'email', 'password', 'confirm_password']
+        fields = ['id', 'username', 'nombre', 'apellido', 'email', 'contraseña', 'confirm_password']
+        extra_kwargs = {
+            'contraseña': {'write_only': True}
+        }
 
-    def validate(self, attrs):
-        if attrs['password'] != attrs['confirm_password']:
-            raise serializers.ValidationError({"password": "Las contraseñas no coinciden"})
-        return attrs
+    def validate(self, data):
+        if data['contraseña'] != data['confirm_password']:
+            raise serializers.ValidationError("Las contraseñas no coinciden")
+        return data
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
-        password = validated_data.pop('password')
         cliente = Cliente(**validated_data)
-        cliente.set_password(password)
+        cliente.set_password(validated_data['contraseña'])
         cliente.save()
         return cliente
 

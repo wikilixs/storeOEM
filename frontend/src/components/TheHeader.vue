@@ -31,7 +31,7 @@ const handleLogout = async () => {
           <div class="flex-shrink-0 flex items-center">
             <router-link to="/" class="text-2xl font-bold text-purple-600">
               TiendaOEM
-            </router-link>
+          </router-link>
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
             <router-link
@@ -58,41 +58,41 @@ const handleLogout = async () => {
         <!-- Botones de acción -->
         <div class="flex items-center">
           <!-- Carrito -->
-          <router-link
-            to="/carrito"
+            <router-link
+              to="/carrito"
             class="p-2 text-gray-400 hover:text-purple-600 relative"
-          >
-            <span class="sr-only">Carrito</span>
-            <svg
-              class="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            <span
-              v-if="cartItemCount > 0"
+              <span class="sr-only">Carrito</span>
+              <svg
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              <span
+                v-if="cartItemCount > 0"
               class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-purple-600 rounded-full"
-            >
-              {{ cartItemCount }}
-            </span>
-          </router-link>
+              >
+                {{ cartItemCount }}
+              </span>
+            </router-link>
 
           <!-- Menú de usuario -->
           <div v-if="isAuthenticated" class="ml-3 relative">
-            <button
-              @click="handleLogout"
+                  <button
+                    @click="handleLogout"
               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200"
-            >
+                  >
               Cerrar sesión
             </button>
-          </div>
+                </div>
           <div v-else class="ml-3 flex items-center space-x-3">
             <router-link
               to="/auth/login"
@@ -105,7 +105,7 @@ const handleLogout = async () => {
               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
             >
               Registrarse
-            </router-link>
+          </router-link>
           </div>
 
           <!-- Botón menú móvil -->
@@ -154,18 +154,18 @@ const handleLogout = async () => {
         class="sm:hidden"
       >
         <div class="pt-2 pb-3 space-y-1">
-          <router-link
-            to="/productos"
+        <router-link
+          to="/productos"
             class="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-purple-700 hover:bg-gray-50"
             @click="isMenuOpen = false"
-          >
-            Productos
-          </router-link>
-          <router-link
+        >
+          Productos
+        </router-link>
+        <router-link
             to="/tutoriales/windows"
             class="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-purple-700 hover:bg-gray-50"
             @click="isMenuOpen = false"
-          >
+        >
             Tutorial Windows
           </router-link>
           <router-link
@@ -174,7 +174,7 @@ const handleLogout = async () => {
             @click="isMenuOpen = false"
           >
             Tutorial Office
-          </router-link>
+        </router-link>
         </div>
       </div>
     </nav>

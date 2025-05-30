@@ -66,12 +66,26 @@
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+            <label for="contraseña" class="block text-sm font-medium text-gray-700">Contraseña</label>
             <div class="mt-1">
               <input
-                id="password"
-                v-model="form.password"
-                name="password"
+                id="contraseña"
+                v-model="form.contraseña"
+                name="contraseña"
+                type="password"
+                required
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
+            <div class="mt-1">
+              <input
+                id="confirm_password"
+                v-model="form.confirm_password"
+                name="confirm_password"
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
@@ -109,7 +123,7 @@
 
           <div class="mt-6">
             <router-link
-              to="/login"
+              to="/auth/login"
               class="w-full inline-flex justify-center text-sm font-medium text-purple-600 hover:text-purple-500"
             >
               Iniciar sesión
@@ -132,17 +146,23 @@ const authStore = useAuthStore()
 const form = reactive({
   username: '',
   email: '',
-  password: '',
+  contraseña: '',
+  confirm_password: '',
   nombre: '',
   apellido: ''
 })
 
 const handleSubmit = async () => {
+  if (form.contraseña !== form.confirm_password) {
+    authStore.error = 'Las contraseñas no coinciden'
+    return
+  }
+
   try {
     await authStore.register(
       form.username,
       form.email,
-      form.password,
+      form.contraseña,
       form.nombre,
       form.apellido
     )

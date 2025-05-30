@@ -91,6 +91,9 @@ DATABASES = {
     }
 }
 
+# Configuración del modelo de usuario personalizado
+AUTH_USER_MODEL = 'api.Cliente'
+
 # Validadores de contraseñas
 AUTH_PASSWORD_VALIDATORS = [
     {

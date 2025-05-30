@@ -28,4 +28,4 @@ onMounted(async () => {
     </main>
     <TheFooter />
   </div>
-</template> 
+</template>

@@ -14,22 +14,67 @@ from .serializers import (
 import requests
 from django.conf import settings
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.hashers import check_password
+import jwt
+from datetime import datetime, timedelta
 
 User = get_user_model()
 
+def generate_token(user_id, username):
+    """Genera un token JWT personalizado"""
+    payload = {
+        'user_id': user_id,
+        'username': username,
+        'exp': datetime.utcnow() + timedelta(days=1)
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
 class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
+    queryset = Cliente.objects.all()
     permission_classes = (AllowAny,)
-    serializer_class = UserRegistrationSerializer
+    serializer_class = ClienteRegistroSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        
+        token = generate_token(user.id, user.username)
+
         return Response({
-            "user": UserRegistrationSerializer(user, context=self.get_serializer_context()).data,
+            "user": ClienteRegistroSerializer(user, context=self.get_serializer_context()).data,
             "message": "Usuario registrado exitosamente",
+            "token": token
         }, status=status.HTTP_201_CREATED)
+
+class LoginView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('contraseña')  # Cambiado a contraseña
+
+        try:
+            user = Cliente.objects.get(username=username)
+        except Cliente.DoesNotExist:
+            return Response(
+                {'error': 'Credenciales inválidas'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if not user.check_password(password):
+            return Response(
+                {'error': 'Credenciales inválidas'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        token = generate_token(user.id, user.username)
+
+        return Response({
+            'token': token,
+            'user': ClienteSerializer(user).data
+        })
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
