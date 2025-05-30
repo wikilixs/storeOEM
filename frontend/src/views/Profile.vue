@@ -5,10 +5,10 @@
     <div class="w-full bg-white rounded-lg shadow-md p-6">
       <form @submit.prevent="handleSubmit" class="space-y-6">
         <div>
-          <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
+          <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
           <input
-            id="name"
-            v-model="form.name"
+            id="nombre"
+            v-model="form.nombre"
             type="text"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
           />
@@ -26,13 +26,15 @@
         </div>
 
         <div>
-          <label for="newPassword" class="block text-sm font-medium text-gray-700">Nueva Contraseña</label>
-          <input
-            id="newPassword"
-            v-model="form.newPassword"
-            type="password"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-          />
+          <label for="nueva_contraseña" class="block text-sm font-medium text-gray-700">Nueva Contraseña</label>
+          <div class="mt-1">
+            <input
+              id="nueva_contraseña"
+              v-model="form.nueva_contraseña"
+              type="password"
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+            />
+          </div>
           <p class="mt-1 text-sm text-gray-500">Dejar en blanco para mantener la contraseña actual</p>
         </div>
 
@@ -68,9 +70,9 @@ const error = ref(null)
 const successMessage = ref(null)
 
 const form = reactive({
-  name: authStore.user?.name || '',
+  nombre: authStore.user?.nombre || '',
   email: authStore.user?.email || '',
-  newPassword: ''
+  nueva_contraseña: ''
 })
 
 const handleSubmit = async () => {
@@ -80,11 +82,11 @@ const handleSubmit = async () => {
 
   try {
     await authStore.updateProfile({
-      name: form.name,
-      password: form.newPassword || undefined
+      nombre: form.nombre,
+      contraseña: form.nueva_contraseña || undefined
     })
     successMessage.value = 'Perfil actualizado correctamente'
-    form.newPassword = ''
+    form.nueva_contraseña = ''
   } catch (e) {
     error.value = e.response?.data?.message || 'Error al actualizar el perfil'
   } finally {

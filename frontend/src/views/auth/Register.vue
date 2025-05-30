@@ -80,12 +80,12 @@
           </div>
 
           <div>
-            <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
+            <label for="confirmar_contraseña" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
             <div class="mt-1">
               <input
-                id="confirm_password"
-                v-model="form.confirm_password"
-                name="confirm_password"
+                id="confirmar_contraseña"
+                v-model="form.confirmar_contraseña"
+                name="confirmar_contraseña"
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
@@ -147,13 +147,13 @@ const form = reactive({
   username: '',
   email: '',
   contraseña: '',
-  confirm_password: '',
+  confirmar_contraseña: '',
   nombre: '',
   apellido: ''
 })
 
 const handleSubmit = async () => {
-  if (form.contraseña !== form.confirm_password) {
+  if (form.contraseña !== form.confirmar_contraseña) {
     authStore.error = 'Las contraseñas no coinciden'
     return
   }

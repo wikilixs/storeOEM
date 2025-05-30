@@ -1,15 +1,14 @@
 from rest_framework import viewsets, status, generics, permissions
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db import transaction
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from .models import Cliente, Producto, Clave, Venta, DetalleVenta, Pago
 from .serializers import (
     ClienteSerializer, ClienteRegistroSerializer,
     ProductoSerializer, ClaveSerializer,
-    VentaSerializer, DetalleVentaSerializer, PagoSerializer,
-    UserRegistrationSerializer
+    VentaSerializer, DetalleVentaSerializer, PagoSerializer
 )
 import requests
 from django.conf import settings
@@ -48,33 +47,26 @@ class RegisterView(generics.CreateAPIView):
             "token": token
         }, status=status.HTTP_201_CREATED)
 
-class LoginView(APIView):
-    permission_classes = (AllowAny,)
+@api_view(['POST'])
+def login_view(request):
+    username = request.data.get('username')
+    contraseña = request.data.get('contraseña')
 
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('contraseña')  # Cambiado a contraseña
-
-        try:
-            user = Cliente.objects.get(username=username)
-        except Cliente.DoesNotExist:
-            return Response(
-                {'error': 'Credenciales inválidas'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-        if not user.check_password(password):
-            return Response(
-                {'error': 'Credenciales inválidas'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
+    try:
+        user = Cliente.objects.get(username=username)
+        if not user.check_contraseña(contraseña):
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         token = generate_token(user.id, user.username)
-
         return Response({
             'token': token,
             'user': ClienteSerializer(user).data
         })
+    except Cliente.DoesNotExist:
+        return Response(
+            {'error': 'Credenciales inválidas'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
@@ -263,4 +255,100 @@ class UserView(APIView):
     def get(self, request):
         serializer = ClienteSerializer(request.user)
         return Response(serializer.data)
+
+class ProductoListView(generics.ListAPIView):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
+    permission_classes = [AllowAny]
+
+class ProductoDetailView(generics.RetrieveAPIView):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
+    permission_classes = [AllowAny]
+
+class ClienteRegistroView(generics.CreateAPIView):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteRegistroSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'user': serializer.data,
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_201_CREATED)
+
+class LoginView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        contraseña = request.data.get('contraseña')
+        
+        try:
+            user = Cliente.objects.get(username=username)
+            if user.check_contraseña(contraseña):
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                })
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Cliente.DoesNotExist:
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class ClienteLoginView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        contraseña = request.data.get('contraseña')
+        
+        try:
+            user = Cliente.objects.get(username=username)
+            if user.check_contraseña(contraseña):
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                })
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Cliente.DoesNotExist:
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class VentaCreateView(generics.CreateAPIView):
+    serializer_class = VentaSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(cliente=self.request.user)
+
+class VentaListView(generics.ListAPIView):
+    serializer_class = VentaSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Venta.objects.filter(cliente=self.request.user)
+
+class VentaDetailView(generics.RetrieveAPIView):
+    serializer_class = VentaSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Venta.objects.filter(cliente=self.request.user)
+
+def authenticate_user(request):
+    username = request.data.get('username')
+    contraseña = request.data.get('contraseña')
+    try:
+        user = Cliente.objects.get(username=username)
+        if user.check_contraseña(contraseña):
+            return user
+    except Cliente.DoesNotExist:
+        pass
+    return None
             

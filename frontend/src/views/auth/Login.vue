@@ -8,12 +8,12 @@ const authStore = useAuthStore()
 
 const form = reactive({
   username: '',
-  password: ''
+  contraseña: ''
 })
 
 const handleSubmit = async () => {
   try {
-    await authStore.login(form.username, form.password)
+    await authStore.login(form.username, form.contraseña)
     router.push('/')    
   } catch (error) {
     console.error('Error de autenticación:', error)
@@ -48,12 +48,12 @@ const handleSubmit = async () => {
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+            <label for="contraseña" class="block text-sm font-medium text-gray-700">Contraseña</label>
             <div class="mt-1">
               <input
-                id="password"
-                v-model="form.password"
-                name="password"
+                id="contraseña"
+                v-model="form.contraseña"
+                name="contraseña"
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"

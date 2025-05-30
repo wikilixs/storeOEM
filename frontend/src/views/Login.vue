@@ -25,26 +25,26 @@
             </div>
 
             <div>
-              <label for="firstName" class="block text-sm font-medium text-gray-700">Nombre</label>
-            <div class="mt-1">
-              <input
-                  id="firstName"
-                  v-model="form.firstName"
-                  name="firstName"
-                type="text"
-                required
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
-          </div>
-
-            <div>
-              <label for="lastName" class="block text-sm font-medium text-gray-700">Apellido</label>
+              <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
               <div class="mt-1">
                 <input
-                  id="lastName"
-                  v-model="form.lastName"
-                  name="lastName"
+                  id="nombre"
+                  v-model="form.nombre"
+                  name="nombre"
+                  type="text"
+                  required
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="apellido" class="block text-sm font-medium text-gray-700">Apellido</label>
+              <div class="mt-1">
+                <input
+                  id="apellido"
+                  v-model="form.apellido"
+                  name="apellido"
                   type="text"
                   required
                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
@@ -69,12 +69,12 @@
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+            <label for="contraseña" class="block text-sm font-medium text-gray-700">Contraseña</label>
             <div class="mt-1">
               <input
-                id="password"
-                v-model="form.password"
-                name="password"
+                id="contraseña"
+                v-model="form.contraseña"
+                name="contraseña"
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
@@ -136,9 +136,9 @@ const isRegisterMode = ref(false)
 const form = reactive({
   username: '',
   email: '',
-  password: '',
-  firstName: '',
-  lastName: ''
+  contraseña: '',
+  nombre: '',
+  apellido: ''
 })
 
 const handleSubmit = async () => {
@@ -147,12 +147,12 @@ const handleSubmit = async () => {
       await authStore.register(
         form.username,
         form.email,
-        form.password,
-        form.firstName,
-        form.lastName
+        form.contraseña,
+        form.nombre,
+        form.apellido
       )
     } else {
-      await authStore.login(form.email, form.password)
+      await authStore.login(form.username, form.contraseña)
     }
     router.push('/')
   } catch (error) {
