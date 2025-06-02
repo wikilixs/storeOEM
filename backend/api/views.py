@@ -146,14 +146,8 @@ class VentaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Crear la venta (sin total, que es read_only en el serializer)
-        venta_data = {
-            'cliente': request.user.id
-        }
-        venta_serializer = self.get_serializer(data=venta_data)
-        venta_serializer.is_valid(raise_exception=True)
-        venta = venta_serializer.save()
 
+        # Calcular el total antes de crear la venta
         total = 0
         detalles = []
         detalle_json = []
@@ -172,17 +166,6 @@ class VentaViewSet(viewsets.ModelViewSet):
                     {'error': f'No hay claves disponibles para el producto {producto_id}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            # Crear el detalle de venta
-            detalle_venta = DetalleVenta.objects.create(
-                venta=venta,
-                producto_id=producto_id,
-                cantidad=cantidad,
-                precio_unitario=clave.producto.precio,
-                subtotal=clave.producto.precio * cantidad
-            )
-            detalles.append(detalle_venta)
-            clave.estado = 'vendida'
-            clave.save()
             total += clave.producto.precio * cantidad
             detalle_json.append({
                 "codproducto": producto_id,
@@ -191,8 +174,17 @@ class VentaViewSet(viewsets.ModelViewSet):
                 "monto": float(clave.producto.precio)
             })
 
-        venta.total = total
-        venta.save()
+        # Crear la venta con el total calculado
+        venta_data = {
+            'cliente': request.user.id,
+            'total': total
+        }
+        venta_serializer = self.get_serializer(data=venta_data)
+        venta_serializer.is_valid(raise_exception=True)
+        venta = venta_serializer.save()
+
+        # Ya no se crean detalles de venta ni se actualizan claves, solo se registra la venta principal en la tabla "ventas".
+        # Si necesitas guardar detalles, deberías agregar un campo JSON a la tabla "ventas" o manejarlo en la respuesta/API.
 
         # Obtener el número incremental de operación
         last_codigo = CodigoCompra.objects.order_by('-id').first()
