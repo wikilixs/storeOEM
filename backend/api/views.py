@@ -132,13 +132,19 @@ class VentaViewSet(viewsets.ModelViewSet):
     
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        # Validar que haya productos en el carrito
+        from .models import CodigoCompra
+        import json
+        from django.utils import timezone
+        from io import BytesIO
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+
         if not request.data.get('detalles', []):
             return Response(
                 {'error': 'El carrito está vacío'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Crear la venta
         venta_data = {
             'cliente': request.user.id,
@@ -150,44 +156,110 @@ class VentaViewSet(viewsets.ModelViewSet):
 
         total = 0
         detalles = []
+        detalle_json = []
 
-        # Procesar cada producto en el carrito
         for detalle in request.data['detalles']:
             producto_id = detalle['producto_id']
-            
+            cantidad = detalle.get('cantidad', 1)
             # Buscar una clave disponible
             clave = Clave.objects.filter(
                 producto_id=producto_id,
                 estado='disponible'
             ).first()
-
             if not clave:
                 transaction.set_rollback(True)
                 return Response(
                     {'error': f'No hay claves disponibles para el producto {producto_id}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
             # Crear el detalle de venta
             detalle_venta = DetalleVenta.objects.create(
                 venta=venta,
-                clave=clave,
-                precio_unitario=clave.producto.precio
+                producto_id=producto_id,
+                cantidad=cantidad,
+                precio_unitario=clave.producto.precio,
+                subtotal=clave.producto.precio * cantidad
             )
             detalles.append(detalle_venta)
-
-            # Actualizar el estado de la clave
             clave.estado = 'vendida'
             clave.save()
+            total += clave.producto.precio * cantidad
+            detalle_json.append({
+                "codproducto": producto_id,
+                "cantidad": cantidad,
+                "descripcion": clave.producto.nombre,
+                "monto": float(clave.producto.precio)
+            })
 
-            total += clave.producto.precio
-
-        # Actualizar el total de la venta
         venta.total = total
         venta.save()
 
+        # Obtener el número incremental de operación
+        last_codigo = CodigoCompra.objects.order_by('-id').first()
+        codoperacion = (last_codigo.id + 1) if last_codigo else 1
+
+        # Construir el JSON para la API externa
+        compra_json = {
+            "codigo": venta.id,
+            "codoperacion": codoperacion,
+            "fecha": timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "montototal": float(venta.total),
+            "detalle": detalle_json
+        }
+
+        # Enviar el JSON a la API externa
+        codigo_compra = None
+        try:
+            response = requests.post(
+                "http://192.168.1.105/public/api/invoices",
+                data=json.dumps(compra_json),
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            if response.status_code == 200:
+                data = response.json()
+                codigo_compra = data.get("codigo_compra")
+        except Exception as e:
+            logger.error(f"Error enviando a API externa: {e}")
+
+        # Guardar el codigo_compra en la base de datos
+        if codigo_compra:
+            CodigoCompra.objects.create(
+                venta=venta,
+                referencia_compra=codigo_compra,
+                fecha_creacion=timezone.now()
+            )
+
+        # Generar PDF con la información de la compra
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        p.setFont("Helvetica", 12)
+        y = 750
+        p.drawString(50, y, f"Fecha: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        y -= 20
+        p.drawString(50, y, f"Número de operación: {codoperacion}")
+        y -= 20
+        p.drawString(50, y, f"Código de compra: {codigo_compra if codigo_compra else 'N/A'}")
+        y -= 30
+        p.drawString(50, y, "Detalle de productos:")
+        y -= 20
+        for d in detalle_json:
+            p.drawString(60, y, f"Producto: {d['descripcion']} | Cantidad: {d['cantidad']} | Monto: {d['monto']}")
+            y -= 20
+        y -= 10
+        p.drawString(50, y, f"Total de la compra: {venta.total}")
+        p.showPage()
+        p.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        # Aquí podrías guardar el PDF en el sistema de archivos o en la base de datos si lo deseas
+
         return Response(
-            self.get_serializer(venta).data,
+            {
+                "venta": self.get_serializer(venta).data,
+                "codigo_compra": codigo_compra,
+                "pdf_base64": pdf.hex()  # O usar base64 si prefieres
+            },
             status=status.HTTP_201_CREATED
         )
 

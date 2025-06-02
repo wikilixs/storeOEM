@@ -1,3 +1,18 @@
+class CodigoCompra(models.Model):
+    id = models.AutoField(primary_key=True)
+    referencia_compra = models.CharField(max_length=255)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    # Venta se declara como ForeignKey después de la clase Venta
+
+    class Meta:
+        db_table = 'codigo_compra'
+        managed = False
+
+    def __str__(self):
+        return f"CodigoCompra {self.referencia_compra} - Venta {self.venta_id}"
+
+# Relación con Venta después de su declaración
+setattr(CodigoCompra, 'venta', models.OneToOneField('Venta', on_delete=models.CASCADE, db_column='venta_id', related_name='codigo_compra'))
 # Definición de modelos para la aplicación API
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
