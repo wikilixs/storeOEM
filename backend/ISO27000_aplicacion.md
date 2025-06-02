@@ -19,9 +19,48 @@ Este proyecto, basado en Django (backend) y Vue.js (frontend), implementa divers
 - **Validación de credenciales:** El backend valida cuidadosamente las credenciales recibidas, devolviendo errores claros y evitando la exposición de información sensible.
 
 ### b) **Control de Acceso y Permisos**
-- **Permisos granulares:** Se emplean clases de permisos de Django REST Framework (`IsAuthenticated`, `AllowAny`, etc.) para restringir el acceso a los recursos según el rol y autenticación del usuario.
-- **Endpoints protegidos:** Los endpoints críticos requieren autenticación, asegurando que solo los usuarios autorizados puedan acceder o modificar información sensible.
-- **Separación de roles:** El sistema diferencia entre usuarios normales y administradores, limitando las acciones según el perfil.
+
+El control de acceso es un pilar fundamental de la seguridad de la información según la norma ISO 27000, ya que garantiza que solo los usuarios autorizados puedan acceder a los recursos y datos sensibles del sistema. En este proyecto, el control de acceso se implementa de la siguiente manera:
+
+#### 1. Autenticación de Usuarios
+- El sistema requiere que los usuarios se autentiquen mediante credenciales únicas (correo electrónico y contraseña).
+- Las contraseñas se almacenan de forma segura utilizando algoritmos de hash robustos, evitando el almacenamiento en texto plano.
+- El backend valida las credenciales y, si son correctas, emite un token JWT que representa la sesión del usuario.
+
+#### 2. Autorización y Permisos Granulares
+- Se utilizan las clases de permisos de Django REST Framework para definir quién puede acceder a cada recurso:
+  - `IsAuthenticated`: Solo permite el acceso a usuarios autenticados.
+  - `AllowAny`: Permite el acceso público a ciertos endpoints, como el registro o el login.
+  - `IsAdminUser`: Restringe el acceso a usuarios con privilegios de administrador.
+- Los endpoints críticos, como la gestión de ventas, pagos y datos de usuario, requieren autenticación, asegurando que solo los usuarios legítimos puedan operar sobre su propia información.
+
+#### 3. Separación de Roles y Principio de Mínimos Privilegios
+- El sistema diferencia entre usuarios normales y administradores, asignando permisos según el rol.
+- Los usuarios normales solo pueden acceder y modificar sus propios datos y operaciones.
+- Los administradores pueden gestionar recursos globales, como productos, claves y usuarios.
+- Se aplica el principio de mínimos privilegios, otorgando a cada usuario solo los permisos estrictamente necesarios para su función.
+
+#### 4. Protección de Endpoints y Recursos
+- Los endpoints de la API están protegidos mediante decoradores y clases de permisos, evitando el acceso no autorizado.
+- Las vistas y métodos que manipulan información sensible verifican la identidad y los permisos del usuario antes de ejecutar cualquier acción.
+- Se implementan filtros en las consultas para asegurar que los usuarios solo puedan acceder a los datos que les corresponden (por ejemplo, un usuario solo puede ver sus propias ventas).
+
+#### 5. Gestión de Sesiones y Tokens
+- El uso de JWT permite validar la autenticidad de cada petición, ya que el token debe ser enviado en la cabecera de autorización.
+- Los tokens tienen una expiración definida, lo que limita el tiempo de acceso en caso de compromiso.
+- Se recomienda implementar mecanismos de revocación de tokens y cierre de sesión para mayor seguridad.
+
+#### 6. Auditoría y Registro de Accesos
+- El sistema registra los intentos de acceso, tanto exitosos como fallidos, permitiendo la detección de patrones sospechosos o intentos de intrusión.
+- Los logs de acceso pueden ser revisados periódicamente para identificar y responder a incidentes de seguridad.
+
+#### 7. Recomendaciones Adicionales
+- Implementar autenticación multifactor (MFA) para usuarios con privilegios elevados.
+- Revisar y actualizar periódicamente las políticas de acceso y los permisos asignados.
+- Limitar el acceso a la infraestructura (servidores, base de datos) solo a personal autorizado y mediante canales seguros.
+
+**En resumen:**
+El control de acceso en este proyecto está alineado con las mejores prácticas de la norma ISO 27000, garantizando que solo los usuarios autorizados puedan acceder y operar sobre los recursos, minimizando el riesgo de accesos no autorizados y protegiendo la confidencialidad e integridad de la información.
 
 ### c) **Gestión de Sesiones y Tokens**
 - **Expiración y revocación:** Los tokens JWT tienen una expiración definida, lo que reduce el riesgo de uso indebido en caso de compromiso.
