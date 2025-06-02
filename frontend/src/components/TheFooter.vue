@@ -4,7 +4,8 @@ const currentYear = new Date().getFullYear()
 const paymentMethods = [
   {
     name: 'Tarjetas de crédito/débito',
-    icon: 'M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 2v12h16V6H4zm2 3h12v2H6V9zm0 4h4v2H6v-2z'
+    icon: 'M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 2v12h16V6H4zm2 3h12v2H6V9zm0 4h4v2H6v-2z',
+    testCard: '4111 1111 1111 1111' // Test card for unlimited purchases
   },
   {
     name: 'Transferencia bancaria',

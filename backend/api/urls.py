@@ -11,7 +11,8 @@ from .views import (
     ClienteLoginView,
     VentaCreateView,
     VentaListView,
-    VentaDetailView
+    VentaDetailView,
+    test_password_hashing
 )
 
 router = DefaultRouter()
@@ -35,4 +36,5 @@ urlpatterns = [
     path('ventas/', VentaCreateView.as_view(), name='venta-create'),
     path('ventas/lista/', VentaListView.as_view(), name='venta-list'),
     path('ventas/<int:pk>/', VentaDetailView.as_view(), name='venta-detail'),
+    path('test-password-hashing/', test_password_hashing, name='test_password_hashing'),
 ]

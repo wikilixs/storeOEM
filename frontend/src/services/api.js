@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 // Interceptor para agregar el token a las peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -41,14 +41,21 @@ export const authService = {
 
   async login(credentials) {
     try {
-      const response = await axiosInstance.post('/auth/login/', credentials)
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token)
+      const response = await axiosInstance.post('/auth/login/', {
+        email: credentials.email, // Asegurarse de enviar el campo email
+        password: credentials.password
+      })
+
+      // Store both refresh and access tokens
+      if (response.data.refresh && response.data.access) {
+        localStorage.setItem('refreshToken', response.data.refresh)
+        localStorage.setItem('accessToken', response.data.access)
       }
+
       return { data: response.data }
     } catch (error) {
       console.error('Error en el login:', error)
-      return { error: error.response?.data?.error || 'Error al iniciar sesión' }
+      return { error: error.response?.data?.detail || 'Error al iniciar sesión' }
     }
   }
 }
@@ -83,4 +90,4 @@ export const productService = {
       return { error: error.response?.data?.error || 'Error al obtener el producto' }
     }
   }
-} 
+}

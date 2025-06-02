@@ -7,14 +7,14 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const form = ref({
-  username: '',
+  email: '', // Cambiar a email
   password: ''
 })
 
 const handleSubmit = async () => {
   try {
-    await authStore.login(form.value.username, form.value.password)
-    
+    await authStore.login(form.value.email, form.value.password) // Cambiar a email
+
     if (!authStore.error) {
       router.push('/')
     }
@@ -36,14 +36,14 @@ const handleSubmit = async () => {
       <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
         <form class="space-y-6" @submit.prevent="handleSubmit">
           <div>
-            <label for="username" class="block text-sm font-medium text-gray-700">Nombre de usuario</label>
+            <label for="email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
             <div class="mt-1">
               <input
-                id="username"
-                v-model="form.username"
-                name="username"
-                type="text"
-                autocomplete="username"
+                id="email"
+                v-model="form.email"
+                name="email"
+                type="email"
+                autocomplete="email"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
               />

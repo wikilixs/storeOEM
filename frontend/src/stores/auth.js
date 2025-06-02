@@ -50,13 +50,13 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async login(username, password) {
+    async login(email, password) {
       this.loading = true
       this.error = null
       
       try {
         const { data, error } = await authService.login({
-          username,
+          email,
           password
         })
         

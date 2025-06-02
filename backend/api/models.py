@@ -44,9 +44,9 @@ class Cliente(models.Model):
 
     objects = ClienteManager()
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'email'  # Cambiar a email como identificador principal
     EMAIL_FIELD = 'email'
-    REQUIRED_FIELDS = ['email', 'nombre', 'apellido']
+    REQUIRED_FIELDS = ['username', 'nombre', 'apellido']  # username ahora es requerido
 
     class Meta:
         db_table = 'clientes'

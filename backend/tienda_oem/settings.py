@@ -124,4 +124,8 @@ SIMPLE_JWT = {
 }
 
 # CORS
-CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo 
+CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

@@ -17,6 +17,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 import jwt
 from datetime import datetime, timedelta
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -286,20 +291,45 @@ class LoginView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        username = request.data.get('username')
+        logger.debug("Handling login request.")
+
+        # Ensure the request data is parsed correctly
+        if not isinstance(request.data, dict):
+            logger.error("Request data is not a valid JSON object.")
+            return Response({"detail": "Invalid request format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.debug(f"Request data received: {request.data}")
+
+        email = request.data.get('email')
         password = request.data.get('password')
-        
+
+        if not email or not password:
+            logger.error("Email or password not provided.")
+            return Response({"detail": "Email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.debug(f"Login attempt for email: {email}")
+
         try:
-            user = Cliente.objects.get(username=username)
+            user = Cliente.objects.get(email=email)
+            logger.debug(f"User found: {user.email}")
+
             if user.check_password(password):
+                logger.debug("Password validation successful.")
                 refresh = RefreshToken.for_user(user)
+                logger.debug("Tokens generated successfully.")
                 return Response({
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 })
-            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                logger.error("Password validation failed.")
+                return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
         except Cliente.DoesNotExist:
-            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+            logger.error("User not found.")
+            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            logger.error(f"Unexpected error during login: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ClienteLoginView(generics.CreateAPIView):
     permission_classes = [AllowAny]
@@ -341,6 +371,21 @@ class VentaDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Venta.objects.filter(cliente=self.request.user)
 
+@csrf_exempt
+def test_password_hashing(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        raw_password = request.POST.get('password')
+
+        try:
+            user = Cliente.objects.get(email=email)
+            is_valid = user.check_password(raw_password)
+            return JsonResponse({'is_valid': is_valid})
+        except Cliente.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
 def authenticate_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -351,4 +396,3 @@ def authenticate_user(request):
     except Cliente.DoesNotExist:
         pass
     return None
-            
