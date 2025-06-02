@@ -1,4 +1,6 @@
+
 import { defineStore } from 'pinia'
+import { axiosInstance } from '@/services/api.js'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -103,31 +105,16 @@ export const useCartStore = defineStore('cart', {
     async checkout() {
       this.loading = true
       this.error = null
-      
       try {
-        const response = await fetch('/api/ventas/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            detalles: this.items.map(item => ({
-              producto_id: item.id
-            }))
-          })
-        })
-
-        if (!response.ok) {
-          const error = await response.json()
-          throw new Error(error.detail || 'Error al procesar la compra')
-        }
-
-        const data = await response.json()
+        const detalles = this.items.map(item => ({
+          producto_id: item.id,
+          cantidad: item.quantity
+        }))
+        const response = await axiosInstance.post('/ventas/', { detalles })
         this.clearCart()
-        return data
+        return response.data
       } catch (error) {
-        this.error = error.message
+        this.error = error.response?.data?.detail || error.message || 'Error al procesar la compra'
         throw error
       } finally {
         this.loading = false

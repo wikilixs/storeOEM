@@ -1,3 +1,9 @@
+# Definición de modelos para la aplicación API
+from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
+
 class CodigoCompra(models.Model):
     id = models.AutoField(primary_key=True)
     referencia_compra = models.CharField(max_length=255)
@@ -87,10 +93,10 @@ class Cliente(models.Model):
         Establece la contraseña del usuario, hasheándola apropiadamente
         """
         self.password = make_password(raw_password)
-        self.save(update_fields=['password'] if not self._state.adding else None)
 
     def save(self, *args, **kwargs):
-        if self._state.adding:
+        # Solo hashear si la contraseña no está hasheada
+        if self.password and not self.password.startswith('pbkdf2_'):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
 

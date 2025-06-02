@@ -123,7 +123,8 @@ class ClaveViewSet(viewsets.ModelViewSet):
 
 class VentaViewSet(viewsets.ModelViewSet):
     serializer_class = VentaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # Permitir compra a cualquier usuario logueado (no staff ni admin requerido)
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -145,10 +146,9 @@ class VentaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Crear la venta
+        # Crear la venta (sin total, que es read_only en el serializer)
         venta_data = {
-            'cliente': request.user.id,
-            'total': 0
+            'cliente': request.user.id
         }
         venta_serializer = self.get_serializer(data=venta_data)
         venta_serializer.is_valid(raise_exception=True)
@@ -363,41 +363,24 @@ class LoginView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        logger.debug("Handling login request.")
-
-        # Ensure the request data is parsed correctly
-        if not isinstance(request.data, dict):
-            logger.error("Request data is not a valid JSON object.")
-            return Response({"detail": "Invalid request format."}, status=status.HTTP_400_BAD_REQUEST)
-
-        logger.debug(f"Request data received: {request.data}")
-
         email = request.data.get('email')
         password = request.data.get('password')
 
         if not email or not password:
-            logger.error("Email or password not provided.")
             return Response({"detail": "Email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        logger.debug(f"Login attempt for email: {email}")
 
         try:
             user = Cliente.objects.get(email=email)
-            logger.debug(f"User found: {user.email}")
-
             if user.check_password(password):
-                logger.debug("Password validation successful.")
-                refresh = RefreshToken.for_user(user)
-                logger.debug("Tokens generated successfully.")
+                # Genera el token personalizado
+                token = generate_token(user.id, user.username)
                 return Response({
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
+                    'access': token,
+                    'user': ClienteSerializer(user).data
                 })
             else:
-                logger.error("Password validation failed.")
                 return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
         except Cliente.DoesNotExist:
-            logger.error("User not found.")
             return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             logger.error(f"Unexpected error during login: {e}")
@@ -424,7 +407,8 @@ class ClienteLoginView(generics.CreateAPIView):
 
 class VentaCreateView(generics.CreateAPIView):
     serializer_class = VentaSerializer
-    permission_classes = [IsAuthenticated]
+    # Permitir compra a cualquier usuario logueado (no staff ni admin requerido)
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         serializer.save(cliente=self.request.user)

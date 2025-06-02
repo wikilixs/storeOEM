@@ -57,26 +57,24 @@ export const useAuthStore = defineStore('auth', {
     async login(email, password) {
       this.loading = true
       this.error = null
-      
+      // Limpia tokens viejos antes de login
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
       try {
         const { data, error } = await authService.login({
           email,
           password
         })
-        
         if (error) {
           throw new Error(error)
         }
-
-        if (data?.access && data?.refresh) {
+        // Guarda el token personalizado JWT
+        if (data?.access) {
           localStorage.setItem('accessToken', data.access)
-          localStorage.setItem('refreshToken', data.refresh)
           this.accessToken = data.access
-          this.refreshToken = data.refresh
-          this.user = data.user
           this.isAuthenticated = true
+          this.user = data.user || null
         }
-        
         return data
       } catch (error) {
         this.error = error.message || 'Error al iniciar sesión'

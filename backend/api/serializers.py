@@ -42,13 +42,14 @@ class ClienteRegistroSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('confirmar_password', None)
+        password = validated_data.pop('password')
         cliente = Cliente(
             username=validated_data['username'],
             email=validated_data['email'],
             nombre=validated_data['nombre'],
             apellido=validated_data['apellido']
         )
-        cliente.set_password(validated_data['password'])
+        cliente.set_password(password)
         cliente.save()
         return cliente
 
@@ -59,7 +60,11 @@ class ClienteSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = Cliente.objects.create_user(**validated_data)
+        password = validated_data.pop('password', None)
+        user = Cliente(**validated_data)
+        if password:
+            user.set_password(password)
+        user.save()
         return user
 
 class ProductoSerializer(serializers.ModelSerializer):

@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
 
-const axiosInstance = axios.create({
+export const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
@@ -14,9 +14,13 @@ const axiosInstance = axios.create({
 // Interceptor para agregar el token a las peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
+    // Siempre tomar el token más reciente del localStorage
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    } else {
+      // Elimina el header si no hay token
+      delete config.headers.Authorization
     }
     return config
   },
