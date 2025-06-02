@@ -1,65 +1,16 @@
 import { defineStore } from 'pinia'
+import { productService } from '@/services/api'
 
 export const useProductsStore = defineStore('products', {
   state: () => ({
-    products: [
-      {
-        id: 1,
-        name: 'Windows 11 Pro',
-        description: 'Licencia original de Windows 11 Pro - Activación digital',
-        price: 299,
-        category: 'windows',
-        featured: true,
-        image: '/images/windows11.jpg'
-      },
-      {
-        id: 2,
-        name: 'Windows 10 Pro',
-        description: 'Licencia original de Windows 10 Pro - Activación digital',
-        price: 249,
-        category: 'windows',
-        featured: true,
-        image: '/images/windows10.jpg'
-      },
-      {
-        id: 3,
-        name: 'Office 2021 Professional Plus',
-        description: 'Suite completa de Microsoft Office 2021 - Licencia perpetua',
-        price: 399,
-        category: 'office',
-        featured: true,
-        image: '/images/office2021.jpg'
-      },
-      {
-        id: 4,
-        name: 'Office 2019 Home & Business',
-        description: 'Microsoft Office 2019 para hogar y pequeñas empresas',
-        price: 299,
-        category: 'office',
-        featured: false,
-        image: '/images/office2019.jpg'
-      },
-      {
-        id: 5,
-        name: 'Tarjeta Steam $50',
-        description: 'Tarjeta de regalo Steam de $50 USD',
-        price: 399,
-        category: 'tarjetas',
-        featured: true,
-        image: '/images/steam.jpg'
-      },
-      {
-        id: 6,
-        name: 'Tarjeta Netflix $30',
-        description: 'Tarjeta de regalo Netflix de $30 USD',
-        price: 249,
-        category: 'tarjetas',
-        featured: false,
-        image: '/images/netflix.jpg'
-      }
-    ],
+    products: [],
     loading: false,
     error: null,
+    pagination: {
+      count: 0,
+      next: null,
+      previous: null
+    },
     categories: {
       windows: {
         name: 'Windows',
@@ -78,10 +29,11 @@ export const useProductsStore = defineStore('products', {
 
   getters: {
     getProductsByCategory: (state) => (category) => {
-      return state.products.filter(product => product.category === category)
+      return state.products.filter(product => product.tipo.toLowerCase().includes(category.toLowerCase()))
     },
     getFeaturedProducts: (state) => {
-      return state.products.filter(product => product.featured)
+      // Por ahora mostraremos los primeros 6 productos como destacados
+      return state.products.slice(0, 6)
     },
     getProductById: (state) => (id) => {
       return state.products.find(product => product.id === parseInt(id))
@@ -94,14 +46,31 @@ export const useProductsStore = defineStore('products', {
       this.error = null
       
       try {
-        // Simulamos una llamada al backend
-        await new Promise(resolve => setTimeout(resolve, 500))
-        // Los productos ya están cargados en el state
-        this.loading = false
+        const { data, error } = await productService.getProducts()
+        if (error) throw new Error(error)
+        
+        // Actualizar la información de paginación
+        this.pagination = {
+          count: data.count,
+          next: data.next,
+          previous: data.previous
+        }
+        
+        // Mapear los productos
+        this.products = data.results.map(product => ({
+          ...product,
+          id: product.id,
+          name: product.nombre,
+          price: product.precio,
+          description: product.descripcion,
+          category: product.tipo.toLowerCase(),
+          image: `/images/${product.tipo.toLowerCase()}.jpg`
+        }))
       } catch (error) {
-        this.error = 'Error al cargar los productos'
-        this.loading = false
+        this.error = error.message || 'Error al cargar los productos'
         console.error('Error fetching products:', error)
+      } finally {
+        this.loading = false
       }
     },
 
@@ -110,45 +79,66 @@ export const useProductsStore = defineStore('products', {
       this.error = null
       
       try {
-        // Simulamos una llamada al backend
-        await new Promise(resolve => setTimeout(resolve, 500))
-        // Los productos ya están filtrados por el getter
-        this.loading = false
-        return this.getProductsByCategory(category)
+        const { data, error } = await productService.getProductsByCategory(category)
+        if (error) throw new Error(error)
+        
+        const productsInCategory = data.results.map(product => ({
+          ...product,
+          id: product.id,
+          name: product.nombre,
+          price: product.precio,
+          description: product.descripcion,
+          category: product.tipo.toLowerCase(),
+          image: `/images/${product.tipo.toLowerCase()}.jpg`
+        }))
+        
+        // Actualizamos solo los productos de esta categoría
+        this.products = [
+          ...this.products.filter(p => !p.tipo.toLowerCase().includes(category.toLowerCase())),
+          ...productsInCategory
+        ]
       } catch (error) {
-        this.error = 'Error al cargar los productos de la categoría'
-        this.loading = false
+        this.error = error.message || 'Error al cargar los productos de la categoría'
         console.error('Error fetching products by category:', error)
-        return []
+      } finally {
+        this.loading = false
       }
     },
 
     async fetchProductById(id) {
-      if (this.loading) return null
-      
       this.loading = true
       this.error = null
       
       try {
-        const product = this.products.find(p => p.id === parseInt(id))
-        if (product) {
-          this.loading = false
-          return product
-        } else {
-          this.error = 'Producto no encontrado'
-          this.loading = false
-          return null
+        const { data, error } = await productService.getProductById(id)
+        if (error) throw new Error(error)
+        
+        const product = {
+          ...data,
+          id: data.id,
+          name: data.nombre,
+          price: data.precio,
+          description: data.descripcion,
+          category: data.tipo.toLowerCase(),
+          image: `/images/${data.tipo.toLowerCase()}.jpg`
         }
+        
+        // Actualizamos o agregamos el producto al store
+        const index = this.products.findIndex(p => p.id === product.id)
+        if (index !== -1) {
+          this.products[index] = product
+        } else {
+          this.products.push(product)
+        }
+        
+        return product
       } catch (error) {
-        console.error('Error al cargar producto por ID:', error)
-        this.error = error.response?.data?.message || 'Error al cargar el producto'
-        this.loading = false
+        this.error = error.message || 'Error al cargar el producto'
+        console.error('Error fetching product by id:', error)
         return null
+      } finally {
+        this.loading = false
       }
-    },
-
-    clearError() {
-      this.error = null
     }
   }
 })

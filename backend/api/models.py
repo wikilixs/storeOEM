@@ -4,8 +4,8 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 
-class ClienteManager(BaseUserManager):
-    def create_user(self, username, email, contraseña=None, **extra_fields):
+class ClienteManager(models.Manager):
+    def create_user(self, username, email, password=None, **extra_fields):
         if not username:
             raise ValueError('El nombre de usuario es obligatorio')
         if not email:
@@ -13,12 +13,25 @@ class ClienteManager(BaseUserManager):
         
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
-        user.contraseña = make_password(contraseña)
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, contraseña=None, **extra_fields):
-        return self.create_user(username, email, contraseña, **extra_fields)
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        return self.create_user(username, email, password, **extra_fields)
+
+    def normalize_email(self, email):
+        """
+        Normaliza la dirección de correo electrónico convirtiendo el dominio a minúsculas
+        """
+        email = email or ''
+        try:
+            email_name, domain_part = email.strip().rsplit('@', 1)
+        except ValueError:
+            pass
+        else:
+            email = email_name + '@' + domain_part.lower()
+        return email
 
 class Cliente(models.Model):
     id = models.AutoField(primary_key=True)
@@ -26,8 +39,8 @@ class Cliente(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     email = models.EmailField(max_length=100, unique=True)
-    contraseña = models.CharField(max_length=255)
     fecha_registro = models.DateTimeField(default=timezone.now)
+    password = models.CharField(max_length=128, db_column='contraseña')
 
     objects = ClienteManager()
 
@@ -49,59 +62,52 @@ class Cliente(models.Model):
         return self.nombre
 
     def check_password(self, raw_password):
-        return check_password(raw_password, self.contraseña)
+        """
+        Verifica si la contraseña proporcionada coincide con la contraseña almacenada
+        """
+        return check_password(raw_password, self.password)
 
     def set_password(self, raw_password):
-        self.contraseña = make_password(raw_password)
+        """
+        Establece la contraseña del usuario, hasheándola apropiadamente
+        """
+        self.password = make_password(raw_password)
+        self.save(update_fields=['password'] if not self._state.adding else None)
 
-    def has_perm(self, perm, obj=None):
-        return True
-
-    def has_module_perms(self, app_label):
-        return True
-
-    @property
-    def is_authenticated(self):
-        return True
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
     @property
     def is_anonymous(self):
         return False
 
     @property
-    def is_active(self):
+    def is_authenticated(self):
         return True
-
-    @property
-    def is_staff(self):
-        return True
-
-    @property
-    def is_superuser(self):
-        return True
-
-    def save(self, *args, **kwargs):
-        if self._state.adding:
-            self.contraseña = make_password(self.contraseña)
-        super().save(*args, **kwargs)
 
 class Producto(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=50, choices=[
-        ('Windows 11', 'Windows 11'),
-        ('Office', 'Office'),
-        ('Tarjeta de regalo', 'Tarjeta de regalo')
-    ])
+    tipo = models.CharField(max_length=50)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    descripcion = models.TextField(null=True)
+    descripcion = models.TextField()
+    stock = models.IntegerField(default=0)  # Nuevo campo para el stock
 
     class Meta:
         db_table = 'productos'
-        managed = False
+        managed = False  # Revert to original setting
 
     def __str__(self):
         return f"{self.nombre} - {self.tipo}"
+
+    @property
+    def stock(self):
+        """
+        Devuelve un valor predeterminado para el campo 'stock' si no existe en la base de datos.
+        """
+        return 0  # Valor predeterminado
 
 class Clave(models.Model):
     id = models.AutoField(primary_key=True)
@@ -133,15 +139,17 @@ class Venta(models.Model):
 class DetalleVenta(models.Model):
     id = models.AutoField(primary_key=True)
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE, db_column='venta_id')
-    clave = models.ForeignKey(Clave, on_delete=models.CASCADE, db_column='clave_id')
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, db_column='producto_id')
+    cantidad = models.IntegerField()
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
-        db_table = 'detalle_venta'
+        db_table = 'detalle_ventas'
         managed = False
 
     def __str__(self):
-        return f"Detalle de venta {self.venta.id} - {self.clave.producto.nombre}"
+        return f"Detalle de venta {self.venta.id} - {self.producto.nombre}"
 
 class Pago(models.Model):
     ESTADO_CHOICES = [
@@ -169,9 +177,9 @@ class Pago(models.Model):
         detalles = []
         for detalle in self.venta.detalles.all():
             detalles.append({
-                "codproducto": detalle.clave.producto.id,
-                "cantidad": 1,  # Por defecto 1 ya que vendemos claves individuales
-                "descripcion": detalle.clave.producto.nombre,
+                "codproducto": detalle.producto.id,
+                "cantidad": detalle.cantidad,
+                "descripcion": detalle.producto.nombre,
                 "monto": float(detalle.precio_unitario)
             })
         

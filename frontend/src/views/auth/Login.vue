@@ -6,17 +6,20 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const form = reactive({
+const form = ref({
   username: '',
-  contraseña: ''
+  password: ''
 })
 
 const handleSubmit = async () => {
   try {
-    await authStore.login(form.username, form.contraseña)
-    router.push('/')    
+    await authStore.login(form.value.username, form.value.password)
+    
+    if (!authStore.error) {
+      router.push('/')
+    }
   } catch (error) {
-    console.error('Error de autenticación:', error)
+    console.error('Error de login:', error)
   }
 }
 </script>
@@ -48,12 +51,12 @@ const handleSubmit = async () => {
           </div>
 
           <div>
-            <label for="contraseña" class="block text-sm font-medium text-gray-700">Contraseña</label>
+            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
             <div class="mt-1">
               <input
-                id="contraseña"
-                v-model="form.contraseña"
-                name="contraseña"
+                id="password"
+                v-model="form.password"
+                name="password"
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"

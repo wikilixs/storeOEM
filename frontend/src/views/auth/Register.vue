@@ -66,12 +66,12 @@
           </div>
 
           <div>
-            <label for="contraseña" class="block text-sm font-medium text-gray-700">Contraseña</label>
+            <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
             <div class="mt-1">
               <input
-                id="contraseña"
-                v-model="form.contraseña"
-                name="contraseña"
+                id="password"
+                v-model="form.password"
+                name="password"
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
@@ -80,12 +80,12 @@
           </div>
 
           <div>
-            <label for="confirmar_contraseña" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
+            <label for="confirmar_password" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
             <div class="mt-1">
               <input
-                id="confirmar_contraseña"
-                v-model="form.confirmar_contraseña"
-                name="confirmar_contraseña"
+                id="confirmar_password"
+                v-model="form.confirmar_password"
+                name="confirmar_password"
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
@@ -147,33 +147,36 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const form = reactive({
+const form = ref({
   username: '',
   email: '',
-  contraseña: '',
-  confirmar_contraseña: '',
+  password: '',
+  confirmar_password: '',
   nombre: '',
   apellido: ''
 })
 
 const handleSubmit = async () => {
-  if (form.contraseña !== form.confirmar_contraseña) {
+  if (form.value.password !== form.value.confirmar_password) {
     authStore.error = 'Las contraseñas no coinciden'
     return
   }
 
   try {
     await authStore.register(
-      form.username,
-      form.email,
-      form.contraseña,
-      form.nombre,
-      form.apellido
+      form.value.username,
+      form.value.email,
+      form.value.password,
+      form.value.nombre,
+      form.value.apellido
     )
-    setTimeout(() => {
-      router.push('/')
-      authStore.clearSuccessMessage()
-    }, 2000)
+    
+    if (!authStore.error) {
+      setTimeout(() => {
+        router.push('/')
+        authStore.clearSuccessMessage()
+      }, 2000)
+    }
   } catch (error) {
     console.error('Error de registro:', error)
   }

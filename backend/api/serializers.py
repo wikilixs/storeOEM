@@ -7,7 +7,7 @@ from .models import Cliente, Producto, Clave, Venta, DetalleVenta, Pago
 User = get_user_model()
 
 class ClienteRegistroSerializer(serializers.ModelSerializer):
-    contraseña = serializers.CharField(
+    password = serializers.CharField(
         write_only=True,
         required=True,
         error_messages={
@@ -15,7 +15,7 @@ class ClienteRegistroSerializer(serializers.ModelSerializer):
             'blank': 'La contraseña no puede estar vacía'
         }
     )
-    confirmar_contraseña = serializers.CharField(
+    confirmar_password = serializers.CharField(
         write_only=True,
         required=True,
         error_messages={
@@ -26,7 +26,7 @@ class ClienteRegistroSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cliente
-        fields = ['id', 'username', 'nombre', 'apellido', 'email', 'contraseña', 'confirmar_contraseña']
+        fields = ['id', 'username', 'nombre', 'apellido', 'email', 'password', 'confirmar_password']
         read_only_fields = ['id', 'fecha_registro']
         extra_kwargs = {
             'username': {'required': True},
@@ -36,19 +36,19 @@ class ClienteRegistroSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if attrs['contraseña'] != attrs['confirmar_contraseña']:
-            raise serializers.ValidationError({"contraseña": "Las contraseñas no coinciden"})
+        if attrs['password'] != attrs['confirmar_password']:
+            raise serializers.ValidationError({"password": "Las contraseñas no coinciden"})
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('confirmar_contraseña', None)
+        validated_data.pop('confirmar_password', None)
         cliente = Cliente(
             username=validated_data['username'],
             email=validated_data['email'],
             nombre=validated_data['nombre'],
-            apellido=validated_data['apellido'],
-            contraseña=validated_data['contraseña']
+            apellido=validated_data['apellido']
         )
+        cliente.set_password(validated_data['password'])
         cliente.save()
         return cliente
 
@@ -56,7 +56,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cliente
         fields = ('id', 'username', 'email', 'nombre', 'apellido')
-        extra_kwargs = {'contraseña': {'write_only': True}}
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = Cliente.objects.create_user(**validated_data)

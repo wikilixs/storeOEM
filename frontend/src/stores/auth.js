@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { useRouter } from 'vue-router'
-import { authService } from '../services/api'
+import { authService } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -13,75 +13,79 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   actions: {
-    async register(username, email, contraseña, nombre, apellido) {
+    async register(username, email, password, nombre, apellido) {
       this.loading = true
       this.error = null
       this.successMessage = null
       
       try {
-        const { data, errors } = await authService.register({
+        const { data, error } = await authService.register({
           username,
           email,
-          contraseña,
-          confirmar_contraseña: contraseña,
+          password,
+          confirmar_password: password,
           nombre,
           apellido
-        });
+        })
 
-        if (errors) {
-          const errorMessage = Object.values(errors)[0];
-          throw new Error(errorMessage);
+        if (error) {
+          throw new Error(error)
         }
 
-        if (data?.access) {
-          localStorage.setItem('token', data.access);
-          this.token = data.access;
-          this.user = data.user;
-          this.isAuthenticated = true;
-          this.successMessage = '¡Cuenta creada exitosamente! Redirigiendo...';
+        if (data?.token) {
+          localStorage.setItem('token', data.token)
+          this.token = data.token
+          this.user = data.user
+          this.isAuthenticated = true
+          this.successMessage = 'Registro exitoso'
         }
         
-        return data;
+        return data
       } catch (error) {
-        this.error = error.message || 'Error al registrar el usuario';
-        throw error;
+        this.error = error.message || 'Error al registrar el usuario'
+        console.error('Error de registro:', error)
+        throw error
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
-    async login(username, contraseña) {
-      this.loading = true;
-      this.error = null;
-
+    async login(username, password) {
+      this.loading = true
+      this.error = null
+      
       try {
-        const { data, error } = await authService.login(username, contraseña);
+        const { data, error } = await authService.login({
+          username,
+          password
+        })
         
         if (error) {
-          throw new Error(error);
+          throw new Error(error)
         }
 
-        if (data?.access) {
-          localStorage.setItem('token', data.access);
-          this.token = data.access;
-          this.user = data.user;
-          this.isAuthenticated = true;
+        if (data?.token) {
+          localStorage.setItem('token', data.token)
+          this.token = data.token
+          this.user = data.user
+          this.isAuthenticated = true
         }
-
-        return data;
+        
+        return data
       } catch (error) {
-        this.error = error.message || 'Error al iniciar sesión';
-        throw error;
+        this.error = error.message || 'Error al iniciar sesión'
+        console.error('Error de login:', error)
+        throw error
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     logout() {
-      localStorage.removeItem('token');
-      this.token = null;
-      this.user = null;
-      this.isAuthenticated = false;
+      localStorage.removeItem('token')
+      this.token = null
+      this.user = null
+      this.isAuthenticated = false
     },
 
     async checkAuth() {

@@ -50,11 +50,11 @@ class RegisterView(generics.CreateAPIView):
 @api_view(['POST'])
 def login_view(request):
     username = request.data.get('username')
-    contraseña = request.data.get('contraseña')
+    password = request.data.get('password')
 
     try:
         user = Cliente.objects.get(username=username)
-        if not user.check_contraseña(contraseña):
+        if not user.check_password(password):
             return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
         
         token = generate_token(user.id, user.username)
@@ -287,11 +287,11 @@ class LoginView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         username = request.data.get('username')
-        contraseña = request.data.get('contraseña')
+        password = request.data.get('password')
         
         try:
             user = Cliente.objects.get(username=username)
-            if user.check_contraseña(contraseña):
+            if user.check_password(password):
                 refresh = RefreshToken.for_user(user)
                 return Response({
                     'refresh': str(refresh),
@@ -306,11 +306,11 @@ class ClienteLoginView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         username = request.data.get('username')
-        contraseña = request.data.get('contraseña')
+        password = request.data.get('password')
         
         try:
             user = Cliente.objects.get(username=username)
-            if user.check_contraseña(contraseña):
+            if user.check_password(password):
                 refresh = RefreshToken.for_user(user)
                 return Response({
                     'refresh': str(refresh),
@@ -343,10 +343,10 @@ class VentaDetailView(generics.RetrieveAPIView):
 
 def authenticate_user(request):
     username = request.data.get('username')
-    contraseña = request.data.get('contraseña')
+    password = request.data.get('password')
     try:
         user = Cliente.objects.get(username=username)
-        if user.check_contraseña(contraseña):
+        if user.check_password(password):
             return user
     except Cliente.DoesNotExist:
         pass
