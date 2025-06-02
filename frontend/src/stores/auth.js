@@ -6,7 +6,9 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     isAuthenticated: false,
-    token: localStorage.getItem('token') || null,
+    // Actualizar para usar accessToken en lugar de token
+    accessToken: localStorage.getItem('accessToken') || null,
+    refreshToken: localStorage.getItem('refreshToken') || null,
     loading: false,
     error: null,
     successMessage: null
@@ -32,9 +34,11 @@ export const useAuthStore = defineStore('auth', {
           throw new Error(error)
         }
 
-        if (data?.token) {
-          localStorage.setItem('token', data.token)
-          this.token = data.token
+        if (data?.access && data?.refresh) {
+          localStorage.setItem('accessToken', data.access)
+          localStorage.setItem('refreshToken', data.refresh)
+          this.accessToken = data.access
+          this.refreshToken = data.refresh
           this.user = data.user
           this.isAuthenticated = true
           this.successMessage = 'Registro exitoso'
@@ -64,9 +68,11 @@ export const useAuthStore = defineStore('auth', {
           throw new Error(error)
         }
 
-        if (data?.token) {
-          localStorage.setItem('token', data.token)
-          this.token = data.token
+        if (data?.access && data?.refresh) {
+          localStorage.setItem('accessToken', data.access)
+          localStorage.setItem('refreshToken', data.refresh)
+          this.accessToken = data.access
+          this.refreshToken = data.refresh
           this.user = data.user
           this.isAuthenticated = true
         }
@@ -82,46 +88,40 @@ export const useAuthStore = defineStore('auth', {
     },
 
     logout() {
-      localStorage.removeItem('token')
-      this.token = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      this.accessToken = null
+      this.refreshToken = null
       this.user = null
       this.isAuthenticated = false
     },
 
     async checkAuth() {
-      if (!this.token) {
+      if (!this.accessToken) {
         this.isAuthenticated = false
         return false
       }
 
       try {
-        const response = await fetch('/api/auth/user/', {
-          headers: {
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Sesión inválida')
-        }
-
-        const user = await response.json()
-        this.user = user
+        const response = await axiosInstance.get('/auth/user/')
+        this.user = response.data
         this.isAuthenticated = true
         return true
       } catch (error) {
         console.error('Error en verificación de sesión:', error)
         this.user = null
-        this.token = null
+        this.accessToken = null
+        this.refreshToken = null
         this.isAuthenticated = false
-        localStorage.removeItem('token')
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
         return false
       }
     },
 
-    clearError() {
+    cleanError() {
       this.error = null
-    },
+    },  // <-- Eliminar esta coma
 
     clearSuccessMessage() {
       this.successMessage = null

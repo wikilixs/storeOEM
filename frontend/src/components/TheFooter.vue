@@ -1,4 +1,7 @@
 <script setup>
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 const currentYear = new Date().getFullYear()
 
 const paymentMethods = [
@@ -124,6 +127,37 @@ const socialLinks = [
           &copy; {{ new Date().getFullYear() }} OEM Store. Todos los derechos reservados.
         </p>
       </div>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+        Cuenta
+      </h3>
+      <ul class="mt-4 space-y-4">
+        <template v-if="!authStore.isAuthenticated">
+          <li>
+            <router-link to="/auth/login" class="text-base text-gray-500 hover:text-purple-600">
+              Iniciar Sesión
+            </router-link>
+          </li>
+          <li>
+            <router-link to="/auth/register" class="text-base text-gray-500 hover:text-purple-600">
+              Registrarse
+            </router-link>
+          </li>
+        </template>
+        <template v-else>
+          <li>
+            <router-link to="/perfil" class="text-base text-gray-500 hover:text-purple-600">
+              Mi Perfil
+            </router-link>
+          </li>
+          <li>
+            <router-link to="/mis-pedidos" class="text-base text-gray-500 hover:text-purple-600">
+              Mis Pedidos
+            </router-link>
+          </li>
+        </template>
+      </ul>
     </div>
   </footer>
 </template>

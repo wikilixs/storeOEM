@@ -29,8 +29,10 @@ export const authService = {
   async register(userData) {
     try {
       const response = await axiosInstance.post('/auth/registro/', userData)
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token)
+      // Actualizar para manejar tanto refresh como access token
+      if (response.data.refresh && response.data.access) {
+        localStorage.setItem('refreshToken', response.data.refresh)
+        localStorage.setItem('accessToken', response.data.access)
       }
       return { data: response.data }
     } catch (error) {
