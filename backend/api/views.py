@@ -133,12 +133,13 @@ class VentaViewSet(viewsets.ModelViewSet):
     
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        from .models import CodigoCompra
+        from .models import CodigoCompra, CodigoClienteCompra
         import json
         from django.utils import timezone
         from io import BytesIO
         from reportlab.lib.pagesizes import letter
         from reportlab.pdfgen import canvas
+        import base64
 
         if not request.data.get('detalles', []):
             return Response(
@@ -146,16 +147,12 @@ class VentaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
         # Calcular el total antes de crear la venta
         total = 0
-        detalles = []
         detalle_json = []
-
         for detalle in request.data['detalles']:
             producto_id = detalle['producto_id']
             cantidad = detalle.get('cantidad', 1)
-            # Buscar una clave disponible
             clave = Clave.objects.filter(
                 producto_id=producto_id,
                 estado='disponible'
@@ -183,14 +180,11 @@ class VentaViewSet(viewsets.ModelViewSet):
         venta_serializer.is_valid(raise_exception=True)
         venta = venta_serializer.save()
 
-        # Ya no se crean detalles de venta ni se actualizan claves, solo se registra la venta principal en la tabla "ventas".
-        # Si necesitas guardar detalles, deberías agregar un campo JSON a la tabla "ventas" o manejarlo en la respuesta/API.
-
         # Obtener el número incremental de operación
         last_codigo = CodigoCompra.objects.order_by('-id').first()
         codoperacion = (last_codigo.id + 1) if last_codigo else 1
 
-        # Construir el JSON para la API externa
+        # Construir el JSON para las APIs externas
         compra_json = {
             "codigo": venta.id,
             "codoperacion": codoperacion,
@@ -199,27 +193,83 @@ class VentaViewSet(viewsets.ModelViewSet):
             "detalle": detalle_json
         }
 
-        # Enviar el JSON a la API externa
-        codigo_compra = None
+        # --- API 1 ---
+        api1_url = "http://192.168.1.105/public/api/invoices"
+        api2_url = "http://192.168.1.106/public/api/cliente-codigo"
+        api1_code = None
+        api2_code = None
+        api2_cliente_id = None
+        api1_success = False
+        api2_success = False
+        api1_error = None
+        api2_error = None
+
+        # Helper to detect code field
+        def detect_code_field(data):
+            for key in data.keys():
+                if 'codigo' in key.lower() and 'cliente' not in key.lower():
+                    return data[key]
+            return None
+
+        # API 1
         try:
-            response = requests.post(
-                "http://192.168.1.105/public/api/invoices",
+            response1 = requests.post(
+                api1_url,
                 data=json.dumps(compra_json),
                 headers={"Content-Type": "application/json"},
                 timeout=10
             )
-            if response.status_code == 200:
-                data = response.json()
-                codigo_compra = data.get("codigo_compra")
+            if response1.status_code == 200:
+                data1 = response1.json()
+                api1_code = detect_code_field(data1)
+                api1_success = api1_code is not None
+            else:
+                api1_error = f"API1 status {response1.status_code}"
         except Exception as e:
-            logger.error(f"Error enviando a API externa: {e}")
+            api1_error = str(e)
 
-        # Guardar el codigo_compra en la base de datos
-        if codigo_compra:
+        # API 2
+        try:
+            response2 = requests.post(
+                api2_url,
+                data=json.dumps(compra_json),
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            if response2.status_code == 200:
+                data2 = response2.json()
+                # Try to find code and cliente_id
+                for key, value in data2.items():
+                    if 'codigo' in key.lower() and 'cliente' not in key.lower():
+                        api2_code = value
+                    if 'cliente' in key.lower() and ('id' in key.lower() or isinstance(value, int)):
+                        api2_cliente_id = value
+                api2_success = api2_code is not None
+            else:
+                api2_error = f"API2 status {response2.status_code}"
+        except Exception as e:
+            api2_error = str(e)
+
+        # Si alguna API falla, mostrar mensaje de demora
+        if not (api1_success and api2_success):
+            return Response(
+                {"error": "La transacción puede tardar, intente más tarde."},
+                status=status.HTTP_202_ACCEPTED
+            )
+
+        # Guardar el código de API 1 en codigo_compra
+        if api1_code:
             CodigoCompra.objects.create(
                 venta=venta,
-                referencia_compra=codigo_compra,
-                fecha_creacion=timezone.now()
+                codigo=api1_code
+            )
+
+        # Guardar el código de API 2 en codigo_cliente_compra
+        if api2_code:
+            CodigoClienteCompra.objects.create(
+                venta=venta,
+                cliente_id=api2_cliente_id if api2_cliente_id else None,
+                codigo=api2_code
             )
 
         # Generar PDF con la información de la compra
@@ -231,7 +281,9 @@ class VentaViewSet(viewsets.ModelViewSet):
         y -= 20
         p.drawString(50, y, f"Número de operación: {codoperacion}")
         y -= 20
-        p.drawString(50, y, f"Código de compra: {codigo_compra if codigo_compra else 'N/A'}")
+        p.drawString(50, y, f"Código de compra (API 1): {api1_code if api1_code else 'N/A'}")
+        y -= 20
+        p.drawString(50, y, f"Código de cliente compra (API 2): {api2_code if api2_code else 'N/A'}")
         y -= 30
         p.drawString(50, y, "Detalle de productos:")
         y -= 20
@@ -244,13 +296,13 @@ class VentaViewSet(viewsets.ModelViewSet):
         p.save()
         pdf = buffer.getvalue()
         buffer.close()
-        # Aquí podrías guardar el PDF en el sistema de archivos o en la base de datos si lo deseas
 
         return Response(
             {
                 "venta": self.get_serializer(venta).data,
-                "codigo_compra": codigo_compra,
-                "pdf_base64": pdf.hex()  # O usar base64 si prefieres
+                "codigo_compra": api1_code,
+                "codigo_cliente_compra": api2_code,
+                "pdf_base64": base64.b64encode(pdf).decode('utf-8')
             },
             status=status.HTTP_201_CREATED
         )

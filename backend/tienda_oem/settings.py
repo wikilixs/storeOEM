@@ -68,8 +68,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'tienda_oem',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'USER': 'wikilixs',
+        'PASSWORD': 'wikilixss',
         'HOST': 'localhost',
         'PORT': '5432',
     }

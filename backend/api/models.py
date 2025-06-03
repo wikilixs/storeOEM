@@ -1,13 +1,29 @@
-# Definición de modelos para la aplicación API
+
+# IMPORTS PRIMERO
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 
+# Modelo para la tabla codigo_cliente_compra
+class CodigoClienteCompra(models.Model):
+    id = models.AutoField(primary_key=True)
+    cliente = models.ForeignKey('Cliente', on_delete=models.SET_NULL, db_column='cliente_id', null=True, blank=True)
+    venta = models.ForeignKey('Venta', on_delete=models.CASCADE, db_column='venta_id')
+    codigo = models.BigIntegerField()  # Debe ser BigIntegerField para reflejar la base de datos
+
+    class Meta:
+        db_table = 'codigo_cliente_compra'
+        managed = False
+
+    def __str__(self):
+        return f"CodigoClienteCompra {self.codigo} - Venta {self.venta_id} - Cliente {self.cliente_id}"
+
+# Definición de modelos para la aplicación API
+
+
 class CodigoCompra(models.Model):
     id = models.AutoField(primary_key=True)
-    referencia_compra = models.CharField(max_length=255)
-    fecha_creacion = models.DateTimeField(default=timezone.now)
+    codigo = models.BigIntegerField()  # Refleja el campo real de la base de datos
     # Venta se declara como ForeignKey después de la clase Venta
 
     class Meta:
@@ -15,7 +31,7 @@ class CodigoCompra(models.Model):
         managed = False
 
     def __str__(self):
-        return f"CodigoCompra {self.referencia_compra} - Venta {self.venta_id}"
+        return f"CodigoCompra {self.codigo} - Venta {self.venta_id}"
 
 # Relación con Venta después de su declaración
 setattr(CodigoCompra, 'venta', models.OneToOneField('Venta', on_delete=models.CASCADE, db_column='venta_id', related_name='codigo_compra'))

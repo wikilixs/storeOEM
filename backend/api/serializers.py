@@ -91,7 +91,7 @@ class VentaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venta
         fields = ('id', 'fecha', 'total', 'detalles')
-        read_only_fields = ('fecha',)  # Solo la fecha es de solo lectura, total ya no
+        read_only_fields = ('fecha',)  # Solo la fecha es de solo lectura
 
 class PagoSerializer(serializers.ModelSerializer):
     payload_api1 = serializers.SerializerMethodField()
