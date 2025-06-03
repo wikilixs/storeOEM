@@ -1,3 +1,4 @@
+from .views import exportar_reporte_ventas
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -37,4 +38,5 @@ urlpatterns = [
     path('ventas/lista/', VentaListView.as_view(), name='venta-list'),
     path('ventas/<int:pk>/', VentaDetailView.as_view(), name='venta-detail'),
     path('test-password-hashing/', test_password_hashing, name='test_password_hashing'),
+    path('exportar-reporte/', exportar_reporte_ventas, name='exportar_reporte'),
 ]

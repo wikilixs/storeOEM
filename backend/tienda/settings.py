@@ -11,7 +11,7 @@ SECRET_KEY = 'django-insecure-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 # Modo de depuración (desactivar en producción)
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Aplicaciones instaladas
 INSTALLED_APPS = [

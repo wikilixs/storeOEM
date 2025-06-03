@@ -1,0 +1,94 @@
+Resumen
+=======
+
+Este documento describe el desarrollo de un sistema e-commerce seguro basado en Django (backend) y Vue.js (frontend), integrando autenticación JWT, compras protegidas, integración con APIs externas y generación de facturas en PDF.
+
+Capítulo 1: Introducción
+========================
+1.1 Planteamiento del problema
+-----------------------------
+En la actualidad, muchas plataformas de comercio electrónico carecen de mecanismos robustos de seguridad y trazabilidad en las transacciones, lo que puede derivar en fraudes, pérdida de información y mala experiencia para el usuario. Además, la integración con servicios externos y la generación automática de comprobantes digitales son retos frecuentes en la digitalización de procesos comerciales.
+
+1.2 Objetivos
+-------------
+1.2.1 Objetivo General
+Plantear de forma clara el propósito principal del trabajo: Desarrollar un sistema de comercio electrónico seguro que permita la compra de productos digitales, integrando autenticación robusta, registro de transacciones, interacción con APIs externas y generación automática de facturas en PDF.
+
+1.2.2 Objetivos Específicos
+- Implementar registro y autenticación de usuarios usando JWT.
+- Permitir la compra de productos digitales solo a usuarios autenticados.
+- Registrar cada venta en la base de datos.
+- Integrar dos APIs externas para validar y registrar códigos de transacción.
+- Generar facturas en PDF con los datos relevantes de cada compra.
+- Manejar errores de integración de forma amigable para el usuario.
+
+1.3 Límites y Alcance del proyecto
+----------------------------------
+El sistema cubre el flujo de compra de productos digitales, desde el registro del usuario hasta la generación de la factura. No contempla la gestión de inventario físico ni la integración con pasarelas de pago reales. El entorno de aplicación es una tienda digital de licencias y claves de software.
+
+Capítulo 2: Marco Teórico
+=========================
+El comercio electrónico requiere sistemas seguros y confiables. Django es un framework robusto para backend, que junto con JWT permite una autenticación segura. Vue.js facilita la creación de interfaces reactivas y modernas. La integración de APIs externas es fundamental para validar transacciones y automatizar procesos. La generación de PDFs asegura la entrega de comprobantes digitales, cumpliendo con normativas y expectativas de los usuarios.
+
+Conceptos clave:
+- JWT (JSON Web Token): estándar para autenticación segura.
+- ORM (Object-Relational Mapping): facilita la interacción con bases de datos.
+- REST API: arquitectura para la comunicación entre sistemas.
+- PDF Dinámico: generación de documentos digitales automáticos.
+
+Capítulo 3: Marco Práctico
+==========================
+El sistema se implementó usando Django para el backend y Vue.js para el frontend. Se utilizó PostgreSQL como base de datos. El backend expone endpoints protegidos por JWT, permitiendo solo a usuarios autenticados realizar compras. Al finalizar una compra, el sistema consulta dos APIs externas, detecta y almacena los códigos de transacción, y genera una factura en PDF con los datos del cliente, productos, códigos y totales.
+
+Herramientas y tecnologías:
+- Django: backend, ORM, seguridad.
+- Vue.js: frontend, SPA.
+- PostgreSQL: base de datos relacional.
+- ReportLab: generación de PDFs.
+- Axios: consumo de APIs desde el frontend.
+
+Capítulo 4: Resultados y Conclusiones
+=====================================
+4.1 Resultados obtenidos
+------------------------
+- Se logró un flujo de compra seguro y trazable.
+- Los usuarios pueden registrarse, autenticarse y comprar productos digitales.
+- Cada venta queda registrada y asociada a los códigos de las APIs externas.
+- El sistema genera facturas en PDF automáticamente.
+- Se maneja de forma clara cualquier error en la integración con APIs externas.
+
+4.2 Conclusiones
+----------------
+El sistema cumple con los objetivos planteados, ofreciendo una experiencia segura y automatizada para el usuario. La integración de APIs y la generación de comprobantes digitales mejoran la trazabilidad y confianza en la plataforma. Como mejora futura, se recomienda integrar pasarelas de pago reales y ampliar la cobertura de productos.
+
+Capítulo 5: Diagramas UML
+=========================
+5.1 Diagrama de Clases
+----------------------
+El sistema cuenta con las siguientes clases principales:
+- Cliente: representa al usuario.
+- Producto: información de los productos digitales.
+- Venta: registro de cada compra.
+- CodigoCompra y CodigoClienteCompra: almacenan los códigos de las APIs externas.
+- Pago: gestiona el estado de los pagos.
+
+Las relaciones principales son: un Cliente puede tener muchas Ventas; cada Venta tiene un CodigoCompra y puede tener un CodigoClienteCompra; cada Venta está asociada a uno o varios Productos.
+
+(Aquí se debe incluir el diagrama visual, por ejemplo generado con draw.io o UMLet, y una breve explicación de las relaciones.)
+
+Capítulo 6: Arquitectura del Sistema
+====================================
+El sistema sigue una arquitectura cliente-servidor, con separación clara entre frontend (Vue.js) y backend (Django). El backend implementa una API RESTful, y el frontend consume estos servicios mediante HTTP y JWT para autenticación. La arquitectura es modular, permitiendo la integración de nuevos servicios o componentes en el futuro.
+
+- Capa de presentación: Vue.js, interacción con el usuario.
+- Capa de lógica de negocio: Django, reglas de negocio y seguridad.
+- Capa de datos: PostgreSQL, persistencia de la información.
+- Servicios externos: APIs para validación de códigos y generación de comprobantes.
+
+Referencias:
+============
+- Documentación oficial de Django y Vue.js.
+- OWASP: buenas prácticas de seguridad en aplicaciones web.
+- PostgreSQL: documentación y guías de uso.
+- ReportLab: generación de PDFs en Python.
+- JWT.io: especificación y ejemplos de uso de JSON Web Tokens.

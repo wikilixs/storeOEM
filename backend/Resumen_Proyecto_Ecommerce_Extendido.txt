@@ -1,0 +1,234 @@
+Resumen
+=======
+
+Este documento describe el desarrollo de un sistema e-commerce seguro basado en Django (backend) y Vue.js (frontend), integrando autenticación JWT, compras protegidas, integración con APIs externas y generación de facturas en PDF. El proyecto aborda la problemática de la seguridad y trazabilidad en la venta de productos digitales, implementando buenas prácticas de desarrollo seguro y arquitectura escalable.
+
+Capítulo 1: Introducción
+========================
+1.1 Planteamiento del problema
+-----------------------------
+El comercio electrónico de productos digitales enfrenta retos de seguridad, integridad de la información y automatización de procesos. Muchos sistemas carecen de mecanismos robustos para validar transacciones, proteger datos de usuarios y generar comprobantes digitales confiables. Además, la integración con servicios externos suele ser compleja y propensa a errores, afectando la experiencia del usuario y la confianza en la plataforma.
+
+1.2 Objetivos
+-------------
+1.2.1 Objetivo General
+Desarrollar un sistema de comercio electrónico seguro y automatizado para la venta de productos digitales, integrando autenticación robusta, registro de transacciones, interacción con APIs externas y generación automática de facturas en PDF.
+
+1.2.2 Objetivos Específicos
+- Implementar registro y autenticación de usuarios usando JWT.
+- Permitir la compra de productos digitales solo a usuarios autenticados.
+- Registrar cada venta en la base de datos y asociarla a los códigos de las APIs externas.
+- Integrar dos APIs externas para validar y registrar códigos de transacción.
+- Generar facturas en PDF con los datos relevantes de cada compra.
+- Manejar errores de integración de forma amigable para el usuario.
+- Garantizar la escalabilidad y mantenibilidad del sistema.
+
+1.3 Límites y Alcance del proyecto
+----------------------------------
+El sistema cubre el flujo de compra de productos digitales, desde el registro del usuario hasta la generación de la factura. No contempla la gestión de inventario físico ni la integración con pasarelas de pago reales. El entorno de aplicación es una tienda digital de licencias y claves de software, con enfoque en la seguridad y la automatización.
+
+Capítulo 2: Marco Teórico
+=========================
+
+El desarrollo de sistemas e-commerce modernos requiere la integración de múltiples conceptos, tecnologías y buenas prácticas. A continuación se detallan los fundamentos teóricos y tecnológicos que sustentan el proyecto:
+
+**Seguridad en aplicaciones web:**
+La seguridad es un pilar fundamental en cualquier sistema de comercio electrónico. Se abordan aspectos como la autenticación y autorización de usuarios, la protección de datos en tránsito (usando HTTPS) y en reposo (hashing de contraseñas), la gestión segura de sesiones y la prevención de ataques comunes (XSS, CSRF, inyección SQL). El uso de JWT (JSON Web Token) permite una autenticación robusta, escalable y desacoplada, facilitando la gestión de sesiones en arquitecturas distribuidas y SPA. Además, se implementan políticas de control de acceso, separación de roles y auditoría de eventos críticos.
+
+**Arquitectura RESTful:**
+La arquitectura RESTful permite la comunicación eficiente y estandarizada entre el frontend y el backend, así como la integración con servicios externos. Los endpoints REST facilitan operaciones CRUD seguras, controladas y fácilmente documentables. REST promueve la escalabilidad, la reutilización de recursos y la independencia entre cliente y servidor. La documentación de la API mediante OpenAPI/Swagger facilita la integración y el mantenimiento.
+
+**ORM (Object-Relational Mapping):**
+Django ORM abstrae la interacción con la base de datos, permitiendo definir modelos de datos en Python y evitando la manipulación directa de SQL. Esto reduce el riesgo de inyecciones, facilita la validación de datos y mejora la mantenibilidad del código. El uso de migraciones permite evolucionar el esquema de la base de datos de forma controlada y segura.
+
+**Frontend reactivo y SPA:**
+Vue.js es un framework progresivo para la construcción de interfaces de usuario reactivas y modernas. Permite el desarrollo de Single Page Applications (SPA), donde la experiencia del usuario es fluida y sin recargas completas de página. La gestión del estado global (con Pinia) y la modularidad de componentes facilitan la escalabilidad y el mantenimiento del frontend. El uso de TailwindCSS permite un diseño visual atractivo y consistente.
+
+**Integración de APIs externas:**
+La integración con servicios externos es clave para automatizar procesos, validar transacciones y enriquecer la experiencia del usuario. El sistema implementa lógica para detectar campos dinámicos en las respuestas de las APIs, asegurando flexibilidad y robustez ante cambios en los servicios externos. Se consideran aspectos como la tolerancia a fallos, la validación de respuestas, la trazabilidad de las operaciones y la gestión de errores.
+
+**Generación de PDFs:**
+La generación dinámica de comprobantes digitales es esencial para la formalidad y la confianza en las transacciones. ReportLab permite crear facturas personalizadas en PDF, incluyendo datos del cliente, productos, códigos de transacción y totales. El PDF es entregado al usuario de forma inmediata, cumpliendo con normativas y expectativas de los usuarios y facilitando auditorías y respaldo documental.
+
+**Buenas prácticas de desarrollo seguro:**
+El proyecto sigue recomendaciones de OWASP, como la validación y saneamiento de entradas, el uso de ORM, el manejo controlado de errores, la protección de endpoints sensibles y la gestión de logs y auditoría. Se promueve el principio de mínimo privilegio, la separación de responsabilidades y la actualización continua de dependencias.
+
+**Bases de datos relacionales y transaccionalidad:**
+PostgreSQL es utilizado por su robustez, integridad transaccional y soporte para operaciones complejas. Se aprovechan las claves foráneas, los tipos de datos avanzados y las transacciones atómicas para garantizar la consistencia y la integridad de la información. Se implementan políticas de respaldo y recuperación ante desastres.
+
+**Despliegue, pruebas y escalabilidad:**
+El sistema está preparado para ser desplegado en entornos Linux, con posibilidad de integración continua y despliegue automatizado. Se implementan pruebas unitarias, de integración y de seguridad para validar la robustez del sistema. La arquitectura modular permite escalar horizontalmente y agregar nuevos servicios o módulos sin afectar el núcleo del sistema.
+
+**Normativas y cumplimiento:**
+Se consideran aspectos legales y normativos, como la protección de datos personales (GDPR, LOPD), la emisión de comprobantes digitales y la trazabilidad de las transacciones. El sistema está diseñado para facilitar auditorías y cumplir con los estándares de la industria.
+
+Capítulo 3: Marco Práctico
+==========================
+
+El desarrollo del sistema se realizó en varias etapas, integrando herramientas y tecnologías modernas, y aplicando metodologías ágiles para asegurar la calidad y la entrega continua. A continuación se detalla cada aspecto práctico del proyecto:
+
+**Backend (Django):**
+- Se diseñaron modelos de datos que reflejan fielmente la estructura de la base de datos PostgreSQL, incluyendo relaciones uno a muchos y uno a uno entre clientes, ventas, productos y códigos de compra.
+- Se implementó un sistema de autenticación basado en JWT, permitiendo la gestión segura de sesiones y la protección de endpoints críticos. El backend valida credenciales, emite tokens y verifica la autenticidad de cada petición.
+- El endpoint de compra es el núcleo del sistema: recibe los productos y cantidades, calcula el total, registra la venta y consulta dos APIs externas. La lógica detecta dinámicamente el campo de código en las respuestas, permitiendo flexibilidad ante cambios en los servicios externos.
+- Se implementó manejo avanzado de errores: si alguna API falla, la transacción queda pendiente y el usuario recibe un mensaje claro. Se registran logs para auditoría y análisis de incidencias.
+- La generación de PDFs se realiza con ReportLab, incluyendo todos los datos relevantes: cliente, productos, códigos de las APIs, subtotal, impuestos y total. El PDF se entrega al usuario en formato base64, permitiendo su descarga inmediata.
+- Se desarrollaron pruebas unitarias para los modelos y vistas, así como pruebas de integración para validar el flujo completo de compra y la interacción con APIs externas.
+- Se documentó el backend con OpenAPI/Swagger, facilitando la integración y el mantenimiento.
+
+**Frontend (Vue.js):**
+- Se desarrolló una SPA moderna y responsiva, utilizando Vue.js y TailwindCSS para el diseño visual.
+- Pinia se empleó para la gestión del estado global, permitiendo un manejo eficiente del carrito de compras, la autenticación y el historial de compras.
+- El frontend consume la API protegida, enviando el JWT en cada petición y gestionando la expiración de tokens.
+- El flujo de compra es intuitivo: el usuario agrega productos al carrito, revisa el resumen y finaliza la compra. Solo se envían los IDs y cantidades, delegando la lógica de validación y cálculo al backend.
+- Se implementó manejo de errores y mensajes claros para el usuario, incluyendo la visualización de estados de compra y la descarga de facturas en PDF.
+- Se realizaron pruebas de usabilidad y compatibilidad en diferentes dispositivos y navegadores.
+
+**Integración de APIs externas:**
+- Tras cada compra, el backend consulta dos APIs externas. Se implementó lógica para detectar el campo de código, independientemente del nombre exacto, y asociar el código al cliente si es posible.
+- Los resultados se almacenan en las tablas `codigo_compra` y `codigo_cliente_compra`, asegurando trazabilidad y cumplimiento de requisitos externos.
+- Se implementó tolerancia a fallos: si una API no responde o devuelve un error, la transacción queda en estado pendiente y el usuario es notificado.
+- Se documentó el proceso de integración y se desarrollaron pruebas automáticas para simular respuestas de las APIs.
+
+**Base de datos (PostgreSQL):**
+- Se diseñaron tablas normalizadas, con claves primarias y foráneas, tipos de datos adecuados (por ejemplo, BigInteger para los códigos) y restricciones de integridad.
+- Se configuró la conexión segura, el manejo de transacciones atómicas y la auditoría de operaciones críticas.
+- Se implementaron scripts de migración y respaldo para facilitar la administración y recuperación ante fallos.
+
+**Generación de PDFs:**
+- ReportLab se utilizó para crear facturas personalizadas, incluyendo datos del cliente, productos, códigos de las APIs, subtotal, impuestos y total.
+- El PDF se entrega al usuario en formato base64, permitiendo su descarga inmediata desde el frontend y su almacenamiento para auditoría.
+- Se diseñaron plantillas visuales para las facturas, asegurando claridad y profesionalismo.
+
+**Despliegue, pruebas y mantenimiento:**
+- El sistema fue probado en entornos Linux, asegurando compatibilidad, rendimiento y seguridad.
+- Se documentó el proceso de despliegue, configuración y actualización, facilitando la replicación y el mantenimiento.
+- Se implementó monitoreo básico y alertas para detectar incidencias en producción.
+
+**Metodología de trabajo:**
+- Se aplicaron principios de desarrollo ágil, con iteraciones cortas, revisiones frecuentes y entrega continua de valor.
+- Se promovió la colaboración entre desarrolladores, diseñadores y usuarios finales para asegurar que el sistema cumpliera con las expectativas y necesidades reales.
+
+Capítulo 4: Resultados y Conclusiones
+=====================================
+4.1 Resultados obtenidos
+------------------------
+- Se logró un flujo de compra seguro, trazable y automatizado.
+- Los usuarios pueden registrarse, autenticarse y comprar productos digitales de forma sencilla y segura.
+- Cada venta queda registrada y asociada a los códigos de las APIs externas, cumpliendo con requisitos de trazabilidad y auditoría.
+- El sistema genera facturas en PDF automáticamente, mejorando la experiencia del usuario y la formalidad de las transacciones.
+- Se maneja de forma clara cualquier error en la integración con APIs externas, evitando frustraciones y confusiones.
+- El sistema es escalable y fácil de mantener, permitiendo la integración de nuevos servicios o productos en el futuro.
+
+4.2 Conclusiones
+----------------
+El sistema cumple con los objetivos planteados, ofreciendo una experiencia segura y automatizada para el usuario. La integración de APIs y la generación de comprobantes digitales mejoran la trazabilidad y confianza en la plataforma. Como mejora futura, se recomienda integrar pasarelas de pago reales, ampliar la cobertura de productos y optimizar la experiencia de usuario en dispositivos móviles.
+
+Capítulo 5: Diagramas UML
+=========================
+5.1 Diagrama de Clases
+----------------------
+
+El sistema cuenta con las siguientes clases principales, modeladas en Django y reflejadas en la base de datos PostgreSQL:
+
+- **Cliente:** representa al usuario registrado, con datos personales, credenciales y fecha de registro. Incluye métodos para autenticación y gestión de contraseñas seguras.
+- **Producto:** almacena la información de los productos digitales disponibles para la venta, incluyendo nombre, tipo, precio, descripción y stock.
+- **Venta:** registra cada compra realizada por un cliente, incluyendo fecha, total y relación con los productos adquiridos.
+- **CodigoCompra:** almacena el código de transacción recibido de la primera API externa, asociado a una venta mediante una relación uno a uno.
+- **CodigoClienteCompra:** almacena el código de la segunda API, asociado a la venta y, si es posible, al cliente (relación opcional).
+- **Pago:** gestiona el estado de los pagos, el monto, los códigos de operación de las APIs y las fechas de creación y actualización. Está relacionado uno a uno con Venta.
+- **DetalleVenta:** (si se usa) permite desglosar los productos y cantidades de cada venta, facilitando reportes y análisis.
+
+Relaciones principales:
+- Un **Cliente** puede tener muchas **Ventas**.
+- Cada **Venta** tiene un **CodigoCompra** (uno a uno) y puede tener un **CodigoClienteCompra** (uno a uno, opcional).
+- Cada **Venta** está asociada a uno o varios **Productos** (a través de los detalles de venta).
+- **Pago** está relacionado uno a uno con **Venta**.
+
+Ejemplo de diagrama de clases (texto):
+
+Cliente 1---* Venta 1---1 CodigoCompra
+                 |           |
+                 |           |---0..1 CodigoClienteCompra
+                 |
+                 *---* Producto
+                 |
+                 1---1 Pago
+
+Explicación detallada:
+- Un cliente puede realizar muchas ventas a lo largo del tiempo.
+- Cada venta queda registrada con su fecha, total y productos adquiridos.
+- Tras la compra, se consultan dos APIs externas y se almacenan los códigos en las tablas correspondientes, permitiendo trazabilidad y auditoría.
+- El modelo de pagos permite gestionar el estado de la transacción y su integración futura con pasarelas de pago reales.
+- La estructura facilita la generación de reportes, la auditoría y la integración con sistemas externos.
+
+5.2 Diagrama de Secuencia
+-------------------------
+El siguiente diagrama de secuencia describe el flujo principal de compra:
+
+1. El usuario se registra o inicia sesión en la plataforma.
+2. El usuario navega por el catálogo y agrega productos al carrito.
+3. Al finalizar la compra, el frontend envía los IDs y cantidades de productos al backend, junto con el JWT de autenticación.
+4. El backend valida la autenticidad del usuario, calcula el total, registra la venta y consulta las dos APIs externas.
+5. El backend detecta y almacena los códigos de las APIs, genera el PDF de la factura y responde al frontend.
+6. El frontend muestra el resultado al usuario y permite descargar la factura en PDF.
+7. Si alguna API falla, el usuario es notificado y la transacción queda pendiente para su reintento o revisión manual.
+
+Este flujo asegura la seguridad, la trazabilidad y la automatización de todo el proceso de compra.
+
+5.2 Diagrama de Secuencia (opcional)
+-------------------------------------
+- El usuario inicia sesión y agrega productos al carrito.
+- El usuario realiza la compra; el frontend envía los IDs y cantidades al backend.
+- El backend registra la venta, consulta las APIs externas y almacena los códigos.
+- El backend genera el PDF y lo envía al frontend.
+- El usuario descarga la factura.
+
+Capítulo 6: Arquitectura del Sistema
+====================================
+
+El sistema implementa una arquitectura multicapa, modular y escalable, que separa claramente las responsabilidades y facilita el mantenimiento, la evolución y la integración de nuevos servicios. A continuación se detalla cada capa y su función:
+
+**Capa de presentación (Frontend - Vue.js):**
+- Gestiona la interacción con el usuario, la navegación, el carrito de compras, la autenticación y la descarga de facturas.
+- Implementa una SPA moderna, responsiva y accesible, optimizada para diferentes dispositivos y navegadores.
+- Consume la API RESTful del backend, enviando el JWT en cada petición y gestionando la expiración de sesiones.
+- Permite la visualización del historial de compras, el estado de las transacciones y la descarga de comprobantes digitales.
+
+**Capa de lógica de negocio (Backend - Django):**
+- Implementa las reglas de negocio, la validación de compras, la integración con APIs externas y la generación de PDFs.
+- Protege los endpoints sensibles mediante autenticación JWT y permisos granulares.
+- Gestiona la persistencia de datos, la integridad referencial y la trazabilidad de las operaciones.
+- Implementa transacciones atómicas para evitar inconsistencias y pérdidas de información.
+- Expone una API RESTful documentada y fácil de consumir.
+
+**Capa de datos (PostgreSQL):**
+- Almacena de forma segura y estructurada la información de clientes, productos, ventas, códigos y pagos.
+- Garantiza la integridad de los datos mediante claves primarias, foráneas y restricciones de unicidad.
+- Permite la ejecución de consultas complejas, reportes y auditorías.
+
+**Servicios externos (APIs):**
+- El sistema se integra con dos APIs externas para validar y registrar códigos de transacción, asegurando el cumplimiento de requisitos externos y la automatización de procesos.
+- La integración es desacoplada, permitiendo modificar o agregar servicios sin afectar el núcleo del sistema.
+
+**Ventajas de la arquitectura:**
+- Escalabilidad: permite agregar nuevos servicios, módulos o integraciones sin afectar el funcionamiento principal.
+- Seguridad: los endpoints sensibles están protegidos por JWT, las operaciones críticas usan transacciones atómicas y se aplican buenas prácticas de desarrollo seguro.
+- Mantenibilidad: el uso de ORM, componentes desacoplados y documentación facilita la evolución y el mantenimiento del sistema.
+- Experiencia de usuario: la SPA permite una navegación fluida, la entrega inmediata de comprobantes digitales y una interacción moderna y agradable.
+- Trazabilidad y auditoría: cada operación queda registrada, permitiendo el análisis, la auditoría y el cumplimiento de normativas.
+
+**Consideraciones de despliegue y operación:**
+- El sistema está preparado para ser desplegado en servidores Linux, con scripts de automatización y respaldo.
+- Se recomienda el uso de HTTPS, monitoreo de logs y actualizaciones periódicas para mantener la seguridad y el rendimiento.
+- La arquitectura permite la integración futura con pasarelas de pago, sistemas de notificaciones y módulos de analítica avanzada.
+
+Referencias:
+============
+- Documentación oficial de Django y Vue.js.
+- OWASP: buenas prácticas de seguridad en aplicaciones web.
+- PostgreSQL: documentación y guías de uso.
+- ReportLab: generación de PDFs en Python.
+- JWT.io: especificación y ejemplos de uso de JSON Web Tokens.
+- Documentación oficial de REST y arquitectura de software.
+- Experiencia práctica en despliegue de sistemas Linux y pruebas de integración.

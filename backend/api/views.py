@@ -1,3 +1,37 @@
+import csv
+from django.http import HttpResponse
+from django.db import connection
+
+# Exportar reporte de ventas a CSV
+def exportar_reporte_ventas(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="reporte_ventas.csv"'
+
+    writer = csv.writer(response)
+
+    query = """
+    SELECT 
+        v.id AS venta_id,
+        c.username AS cliente,
+        c.email,
+        v.fecha,
+        v.total,
+        cc.codigo AS codigo_compra_api1,
+        ccc.codigo AS codigo_cliente_compra_api2
+    FROM ventas v
+    JOIN clientes c ON v.cliente_id = c.id
+    LEFT JOIN codigo_compra cc ON cc.venta_id = v.id
+    LEFT JOIN codigo_cliente_compra ccc ON ccc.venta_id = v.id
+    ORDER BY v.fecha DESC;
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        columns = [col[0] for col in cursor.description]
+        writer.writerow(columns)
+        for row in cursor.fetchall():
+            writer.writerow(row)
+
+    return response
 from rest_framework import viewsets, status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
@@ -195,7 +229,7 @@ class VentaViewSet(viewsets.ModelViewSet):
 
         # --- API 1 ---
         api1_url = "http://192.168.1.105/public/api/invoices"
-        api2_url = "http://192.168.1.106/public/api/cliente-codigo"
+        api2_url = "http://192.168.1.101:50570/api/transaccion/registrar"
         api1_code = None
         api2_code = None
         api2_cliente_id = None
